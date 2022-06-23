@@ -1,0 +1,165 @@
+/*#region generic styles*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h2 {
+  text-align: center;
+}
+
+button {
+  padding: 1rem 2rem;
+  font-size: 2rem;
+  border-radius: 3px;
+  outline: none;
+  border: none;
+  &:hover {
+    cursor: pointer;
+  }
+}
+/*#endregion generic styles*/
+
+/*#region Colors*/
+$gray_1: #efefef;
+$gray_2: #e2e2e2;
+$green_1: #59d18e;
+$blue_1: #5b9ad2;
+$blue_2: #4164df;
+$purple_1: #5a4bad;
+
+/*#endregion Colors*/
+
+/*#region utils*/
+@mixin flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin layoutMargin($type, $size) {
+  @if $type == horizontal {
+    > * + * {
+      margin-left: $size;
+    }
+  } @else {
+    > * + * {
+      margin-top: $size;
+    }
+  }
+}
+/*#endregion utils*/
+
+.gameGrid {
+  --gridGap: 32px;
+  height: 100vh;
+  width: calc(100vw - var(--gridGap) - 16px);
+  padding: 8px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 70% 30%;
+  grid-template-rows: repeat(4, 1fr);
+  grid-gap: var(--gridGap);
+  grid-template-areas:
+    "game stats"
+    "game stats"
+    "game userActions"
+    "basicButton userActions";
+}
+
+/*#region game section*/
+.gameSection {
+  grid-area: game;
+  display: grid;
+  grid-gap: var(--gridGap);
+  grid-template-columns: repeat(3, 1fr);
+  height: 100%;
+}
+
+.buttonContainer {
+  grid-area: basicButton;
+  justify-self: center;
+  align-self: center;
+  button {
+    background-color: $purple_1;
+  }
+}
+
+.tileContainer {
+  border: 1px solid red;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  h2 {
+    text-align: center;
+  }
+}
+
+.fillTile {
+  position: relative;
+  &::after {
+    background-color: orangered;
+    --containerSize: 1rem;
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+    width: var(--containerSize);
+    height: var(--containerSize);
+  }
+}
+
+/*#endregion game section*/
+
+/*#region stats section*/
+.statsSection {
+  --borderRadius: 3px;
+  grid-area: stats;
+  display: flex;
+  flex-direction: column;
+  background-color: $gray_1;
+  padding: 16px;
+  border-radius: var(--borderRadius);
+
+  .hasWonContainer {
+    background-color: $gray_1;
+    height: 100%;
+    font-size: 3rem;
+    @include flexCenter();
+    border-radius: var(--borderRadius);
+  }
+
+  .statsBody {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    @include layoutMargin(vertical, 0.5rem);
+    .statsContainer {
+      flex: 1;
+      padding: 1.2rem;
+      box-shadow: inset 0 0 20px 7px $gray_2;
+      border-radius: var(--borderRadius);
+    }
+  }
+}
+
+/*#region stats section*/
+
+/*#region user actions section*/
+.userActionsSection {
+  grid-area: userActions;
+  display: flex;
+  flex-direction: column;
+  @include layoutMargin(vertical, 0.5rem);
+  .buttonContainer {
+    width: 100%;
+    button {
+      background-color: $green_1;
+    }
+  }
+}
+
+/*#endregion user actions section*/
