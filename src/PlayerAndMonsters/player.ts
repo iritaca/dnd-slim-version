@@ -1,8 +1,8 @@
 import { Player } from "../types";
 
-export const player: Player[] = [
+export const players: Player[] = [
   {
-    hitpoints: 13,
-    attackDamage: 2,
+    hitpoints: 20,
+    attackDamage: 5,
   },
 ];

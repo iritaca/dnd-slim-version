@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Styles from "./Styles/Game.module.scss";
 
 export const Game = () => {
-  let [playerPosition, setPlayerPosition] = useState(0);
+  const [playerPosition, setPlayerPosition] = useState(0);
 
   const gameTiles = 3;
 
@@ -36,9 +36,7 @@ export const Game = () => {
             </button>
           )}
           {hasWon && (
-            <button onClick={() => setPlayerPosition((playerPosition = 0))}>
-              Reset Game
-            </button>
+            <button onClick={() => setPlayerPosition(0)}>Reset Game</button>
           )}
         </>
       </div>
