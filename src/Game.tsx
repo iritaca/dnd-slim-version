@@ -1,22 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+import { generatePlayer } from "./PlayerAndMonsters/player";
+import { generateMonster } from "./PlayerAndMonsters/monsters";
 
 import Styles from "./Styles/Game.module.scss";
+import { Monster, Player } from "./types";
 
 export const Game = () => {
-  const [playerPosition, setPlayerPosition] = useState(0);
-
+  const [player, setPlayer] = useState(generatePlayer());
   const gameTiles = 3;
 
-  const hasWon = playerPosition + 1 > gameTiles;
+  const hasWon = player.position + 1 > gameTiles;
 
   function generateTiles(gameTiles: number) {
     const tiles = [];
     for (let gameTile = 0; gameTile < gameTiles; gameTile++) {
       tiles.push(
         <Tile
-          playerHere={gameTile === playerPosition}
+          player={player}
+          setPlayer={setPlayer}
           key={gameTile}
           stage={gameTile}
+          winner
         />
       );
     }
@@ -31,12 +36,22 @@ export const Game = () => {
       <div className={Styles.buttonContainer}>
         <>
           {!hasWon && (
-            <button onClick={() => setPlayerPosition(playerPosition + 1)}>
+            <button
+              onClick={() =>
+                setPlayer({ ...player, position: player.position + 1 })
+              }
+            >
               Advance
             </button>
           )}
           {hasWon && (
-            <button onClick={() => setPlayerPosition(0)}>Reset Game</button>
+            <button
+              onClick={() =>
+                setPlayer({ ...player, position: (player.position = 0) })
+              }
+            >
+              Reset Game
+            </button>
           )}
         </>
       </div>
@@ -63,15 +78,30 @@ export const Game = () => {
 };
 
 const Tile = ({
-  playerHere,
+  player,
+  setPlayer,
   stage,
+  winner,
 }: {
-  playerHere: boolean;
+  player: { hitpoints: number; attackDamage: number; position: number };
+  setPlayer: React.Dispatch<React.SetStateAction<Player>>;
   stage: number;
+  winner: boolean;
 }) => {
+  const [monster, setMonster] = useState(generateMonster());
+
+  const playerIsHere = player.position === stage;
+
+  useEffect(() => {
+    if (playerIsHere) {
+      doBattle({ player, monster, setPlayer, setMonster, winner });
+    }
+  }, [playerIsHere]);
   return (
     <div
-      className={`${Styles.tileContainer} ${playerHere ? Styles.fillTile : ""}`}
+      className={`${Styles.tileContainer}  ${
+        playerIsHere ? Styles.fillTile : ""
+      }`}
     >
       <h2>{`Stage: ${stage}`}</h2>
     </div>
@@ -80,4 +110,33 @@ const Tile = ({
 
 const WinScreen = () => {
   return <div className={Styles.hasWonContainer}>You win!</div>;
+};
+
+const doBattle = ({
+  player,
+  monster,
+  setPlayer,
+  setMonster,
+  winner,
+}: {
+  player: { hitpoints: number; attackDamage: number };
+  monster: { hitpoints: number };
+  setPlayer: React.Dispatch<React.SetStateAction<Player>>;
+  setMonster: React.Dispatch<React.SetStateAction<Monster>>;
+  winner: boolean;
+}) => {
+  if (player.hitpoints <= 0) {
+    console.log("player died");
+    return (winner = false);
+  }
+  if (monster.hitpoints <= 0) {
+    console.log("monster died", monster.hitpoints);
+    return (winner = true);
+  }
+  winner = false;
+
+  console.log(winner);
+  // return winner;
+
+  console.log((monster.hitpoints -= player.attackDamage));
 };
