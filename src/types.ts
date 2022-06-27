@@ -8,3 +8,5 @@ export interface Monster {
   hitpoints: number;
   attackDamage: number;
 }
+
+export type BattleWinner = "player" | "monster";
