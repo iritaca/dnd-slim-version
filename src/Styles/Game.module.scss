@@ -11,10 +11,15 @@ h2 {
 
 button {
   padding: 1rem 2rem;
-  font-size: 2rem;
+  font: {
+    size: 2rem;
+    weight: 500;
+  }
   border-radius: 3px;
   outline: none;
   border: none;
+  color: white;
+
   &:hover {
     cursor: pointer;
   }
@@ -22,12 +27,14 @@ button {
 /*#endregion generic styles*/
 
 /*#region Colors*/
-$gray_1: #efefef;
-$gray_2: #e2e2e2;
-$green_1: #59d18e;
-$blue_1: #5b9ad2;
-$blue_2: #4164df;
-$purple_1: #5a4bad;
+$clr-gray_1: #efefef;
+$clr-gray_2: #e2e2e2;
+$clr-green_1: #59d18e;
+$clr-blue_1: #5b9ad2;
+$clr-blue_2: #4164df;
+$clr-blue_3: #92a8d1;
+$clr-purple_1: #5a4bad;
+$clr-magenta_1: #ff6f61;
 
 /*#endregion Colors*/
 
@@ -53,19 +60,20 @@ $purple_1: #5a4bad;
 
 .gameGrid {
   --gridGap: 32px;
+  --mainMargin: 16px;
   height: 100vh;
-  width: calc(100vw - var(--gridGap) - 16px);
+  width: calc(100vw - var(--gridGap) - var(--mainMargin));
   padding: 8px;
-  margin: 0 auto;
+  margin: 0 var(--mainMargin);
   display: grid;
-  grid-template-columns: 70% 30%;
+  grid-template-columns: 70% calc(30% - var(--gridGap));
   grid-template-rows: repeat(4, 1fr);
   grid-gap: var(--gridGap);
   grid-template-areas:
     "game stats"
     "game stats"
-    "game userActions"
-    "basicButton userActions";
+    "game stats"
+    "game userActions";
 }
 
 /*#region game section*/
@@ -75,15 +83,6 @@ $purple_1: #5a4bad;
   grid-gap: var(--gridGap);
   grid-template-columns: repeat(3, 1fr);
   height: 100%;
-}
-
-.buttonContainer {
-  grid-area: basicButton;
-  justify-self: center;
-  align-self: center;
-  button {
-    background-color: $purple_1;
-  }
 }
 
 .tileContainer {
@@ -119,12 +118,12 @@ $purple_1: #5a4bad;
   grid-area: stats;
   display: flex;
   flex-direction: column;
-  background-color: $gray_1;
+  background-color: $clr-gray_1;
   padding: 16px;
   border-radius: var(--borderRadius);
 
   .hasWonContainer {
-    background-color: $gray_1;
+    background-color: $clr-gray_1;
     height: 100%;
     font-size: 3rem;
     @include flexCenter();
@@ -137,10 +136,13 @@ $purple_1: #5a4bad;
     flex-direction: column;
     flex: 1;
     @include layoutMargin(vertical, 0.5rem);
+    > h3 {
+      text-align: center;
+    }
     .statsContainer {
       flex: 1;
       padding: 1.2rem;
-      box-shadow: inset 0 0 20px 7px $gray_2;
+      box-shadow: inset 0 0 20px 7px $clr-gray_2;
       border-radius: var(--borderRadius);
     }
   }
@@ -155,11 +157,83 @@ $purple_1: #5a4bad;
   flex-direction: column;
   @include layoutMargin(vertical, 0.5rem);
   .buttonContainer {
+    --buttonsGap: 8px;
+    display: grid;
+    grid-gap: var(--buttonsGap);
+    grid-template-columns: repeat(2, 1fr);
+
     width: 100%;
-    button {
-      background-color: $green_1;
+    .btn {
+      font-size: 1.2rem;
+      transition: transform 0.1s ease;
+      position: relative;
+      &:hover {
+        transform: translate(-6px, -10px);
+
+        &:active {
+          transform: translate(-3px, -5px);
+        }
+        &::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          box-shadow: 6px 6px 2px 0rem black;
+        }
+      }
+      &.attack {
+        background-color: $clr-green_1;
+      }
+      &.advance {
+        background-color: $clr-purple_1;
+      }
+      &.reset {
+        background-color: $clr-blue_1;
+      }
+      &.heal {
+        background-color: $clr-magenta_1;
+      }
+      &.run {
+        color: black;
+      }
     }
   }
 }
 
 /*#endregion user actions section*/
+
+/*#region hitpoints */
+.hitpointsContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  .user {
+    text-transform: capitalize;
+  }
+  .progress {
+    height: 12px;
+    width: 100%;
+    border: {
+      width: 2px;
+      radius: 20px;
+      style: solid;
+      color: $clr-blue_3;
+    }
+
+    background-color: $clr-gray_1;
+    overflow: hidden;
+    &::-webkit-progress-bar {
+      background-color: $clr-gray_1;
+    }
+    &::-webkit-progress-value {
+      transition: width 1s;
+      background-color: $clr-blue_3;
+    }
+  }
+  & + & {
+    margin-top: 16px;
+  }
+}
+/*#endregion hitpoints */
