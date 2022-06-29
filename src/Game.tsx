@@ -59,6 +59,10 @@ export const Game = () => {
         )}
         {hasWon && <WinScreen />}
       </section>
+      <section className={Styles.logSection}>
+        <h2 className={Styles.title}>Log</h2>
+        <div className={Styles.description}></div>
+      </section>
       <section className={Styles.userActionsSection}>
         <h2>Player: 'player's name'</h2>
         <div className={Styles.buttonContainer}>

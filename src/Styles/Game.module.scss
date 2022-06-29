@@ -67,13 +67,15 @@ $clr-magenta_1: #ff6f61;
   margin: 0 var(--mainMargin);
   display: grid;
   grid-template-columns: 70% calc(30% - var(--gridGap));
-  grid-template-rows: repeat(4, 1fr);
+  grid-template-rows: repeat(6, 1fr);
   grid-gap: var(--gridGap);
   grid-template-areas:
     "game stats"
     "game stats"
     "game stats"
-    "game userActions";
+    "game stats"
+    "logSection userActions"
+    "logSection userActions";
 }
 
 /*#region game section*/
@@ -149,6 +151,26 @@ $clr-magenta_1: #ff6f61;
 }
 
 /*#endregion stats section*/
+
+/*#region Log section*/
+.logSection {
+  grid-area: logSection;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background-color: $clr-gray_1;
+  .title {
+    text-align: left;
+  }
+  .description {
+    height: 100%;
+    margin-top: 16px;
+    padding: 1.2rem;
+    box-shadow: inset 0 0 20px 7px $clr-gray_2;
+    border-radius: var(--borderRadius);
+  }
+}
+/*#endregion Log section*/
 
 /*#region user actions section*/
 .userActionsSection {
