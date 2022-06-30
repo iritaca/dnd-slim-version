@@ -13,9 +13,17 @@
     - Create function `doBattle` battle(player, monster, setPlayer, setMonster) that returns the winner
       - [x] Dictate who attacks first through a random number
       - [x] On each loop iteration, only one attack is done.
-    - Use the winner to determine if user can advance or if we show deathScreen and reset button.
-    - Enable advance button when player is winner, show death screen when monster is winner
-      - Build deathScreen component with reset button.
-        - reset button should now also reset battleWinner
-    - Show health of player somewhere
+    - [x] Use the winner to determine if user can advance or if we show deathScreen and reset button.
+    - [x] Enable advance button when player is winner, show death screen when monster is winner
+    - [x] Build deathScreen component with reset button.
+      - [x] reset button should now also reset battleWinner
+    - [x] Show health of player somewhere
     - comment our code.
+    - [x] show monster health
+    - add an entry to the logs after every battle
+
+## @isaac doubts...
+
+- player continues hitting even after dying
+- first log could be show whoseAttacking first
+- how to store the initial values to use them in the reset action?

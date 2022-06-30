@@ -20,7 +20,7 @@ button {
   border: none;
   color: white;
 
-  &:hover {
+  &:hover:not(:disabled) {
     cursor: pointer;
   }
 }
@@ -35,6 +35,7 @@ $clr-blue_2: #4164df;
 $clr-blue_3: #92a8d1;
 $clr-purple_1: #5a4bad;
 $clr-magenta_1: #ff6f61;
+$borderRadius: 3px;
 
 /*#endregion Colors*/
 
@@ -81,55 +82,44 @@ $clr-magenta_1: #ff6f61;
 /*#region game section*/
 .gameSection {
   grid-area: game;
-  display: grid;
-  grid-gap: var(--gridGap);
-  grid-template-columns: repeat(3, 1fr);
-  height: 100%;
 }
 
 .tileContainer {
+  height: 100%;
   border: 1px solid red;
-  display: flex;
-  flex-direction: column;
   padding: 16px;
   h2 {
-    text-align: center;
+    text-align: left;
   }
 }
 
 .fillTile {
-  position: relative;
-  &::after {
-    background-color: orangered;
-    --containerSize: 1rem;
-    content: "";
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 0;
-    width: var(--containerSize);
-    height: var(--containerSize);
-  }
+  --containerSize: 1rem;
+  background-color: orangered;
+  width: var(--containerSize);
+  height: var(--containerSize);
 }
 
 /*#endregion game section*/
 
 /*#region stats section*/
 .statsSection {
-  --borderRadius: 3px;
   grid-area: stats;
   display: flex;
   flex-direction: column;
   background-color: $clr-gray_1;
   padding: 16px;
-  border-radius: var(--borderRadius);
+  border-radius: $borderRadius;
 
   .hasWonContainer {
     background-color: $clr-gray_1;
     height: 100%;
     font-size: 3rem;
-    @include flexCenter();
-    border-radius: var(--borderRadius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    border-radius: $borderRadius;
   }
 
   .statsBody {
@@ -145,7 +135,7 @@ $clr-magenta_1: #ff6f61;
       flex: 1;
       padding: 1.2rem;
       box-shadow: inset 0 0 20px 7px $clr-gray_2;
-      border-radius: var(--borderRadius);
+      border-radius: $borderRadius;
     }
   }
 }
@@ -159,6 +149,7 @@ $clr-magenta_1: #ff6f61;
   flex-direction: column;
   padding: 16px;
   background-color: $clr-gray_1;
+  border-radius: $borderRadius;
   .title {
     text-align: left;
   }
@@ -167,7 +158,7 @@ $clr-magenta_1: #ff6f61;
     margin-top: 16px;
     padding: 1.2rem;
     box-shadow: inset 0 0 20px 7px $clr-gray_2;
-    border-radius: var(--borderRadius);
+    border-radius: $borderRadius;
   }
 }
 /*#endregion Log section*/
@@ -177,6 +168,7 @@ $clr-magenta_1: #ff6f61;
   grid-area: userActions;
   display: flex;
   flex-direction: column;
+  padding: 16px;
   @include layoutMargin(vertical, 0.5rem);
   .buttonContainer {
     --buttonsGap: 8px;
@@ -185,42 +177,51 @@ $clr-magenta_1: #ff6f61;
     grid-template-columns: repeat(2, 1fr);
 
     width: 100%;
-    .btn {
-      font-size: 1.2rem;
-      transition: transform 0.1s ease;
-      position: relative;
-      &:hover {
-        transform: translate(-6px, -10px);
+  }
+}
 
-        &:active {
-          transform: translate(-3px, -5px);
-        }
-        &::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          box-shadow: 6px 6px 2px 0rem black;
-        }
-      }
-      &.attack {
-        background-color: $clr-green_1;
-      }
-      &.advance {
-        background-color: $clr-purple_1;
-      }
-      &.reset {
-        background-color: $clr-blue_1;
-      }
-      &.heal {
-        background-color: $clr-magenta_1;
-      }
-      &.run {
-        color: black;
-      }
+.btn {
+  font-size: 1.2rem;
+  transition: transform 0.1s ease;
+  position: relative;
+  &:hover:not(:disabled) {
+    transform: translate(-6px, -10px);
+
+    &:active {
+      transform: translate(-3px, -5px);
     }
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      box-shadow: 6px 6px 2px 0rem black;
+      border-radius: $borderRadius;
+    }
+  }
+  &:disabled,
+  &[disabled] {
+    filter: grayscale(0.8);
+    &:hover {
+      cursor: not-allowed;
+    }
+  }
+  &.attack {
+    background-color: $clr-green_1;
+  }
+  &.advance {
+    background-color: $clr-purple_1;
+  }
+  &.reset {
+    background-color: $clr-blue_3;
+  }
+  &.heal {
+    background-color: $clr-magenta_1;
+  }
+  &.run {
+    color: black;
   }
 }
 
@@ -250,8 +251,13 @@ $clr-magenta_1: #ff6f61;
       background-color: $clr-gray_1;
     }
     &::-webkit-progress-value {
-      transition: width 1s;
+      transition: width 1s, background-color 1s;
       background-color: $clr-blue_3;
+    }
+    &.lowHealth {
+      &::-webkit-progress-value {
+        background-color: $clr-magenta_1;
+      }
     }
   }
   & + & {
