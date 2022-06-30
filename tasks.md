@@ -24,6 +24,4 @@
 
 ## @isaac doubts...
 
-- player continues hitting even after dying
-- first log could be show whoseAttacking first
 - how to store the initial values to use them in the reset action?
