@@ -10,6 +10,12 @@ import { sleep } from "./utils/utils";
 export const Game = () => {
   const [player, setPlayer] = useState<Player>(generatePlayer());
   const [monster, setMonster] = useState<Monster>(generateMonster());
+
+  // Adding the initial max life points
+  const { hitpoints: maxPlayerLife } = generatePlayer();
+  const { hitpoints: maxMonsterLife } = generateMonster();
+
+  const [logMessage, setLogMessage] = useState<string[]>([]);
   const [stageWinner, setStageWinner] = useState<BattleWinner>("monster");
   const gameTiles = 3;
   const hasWon = player.position + 1 > gameTiles;
@@ -20,6 +26,11 @@ export const Game = () => {
   useEffect(() => {
     setMonster(generateMonster());
   }, [player.position]);
+
+  const handleMessages = (message: string) => {
+    const dateTime = new Date().toLocaleTimeString();
+    return logMessage.unshift(`${dateTime} ${message}`);
+  };
 
   return (
     <div className={Styles.gameGrid}>
@@ -32,18 +43,16 @@ export const Game = () => {
           <>
             <h2 className={Styles.statsHeader}>Stats </h2>
             <div className={Styles.statsBody}>
-              <h3>Turn : Skeleton 3</h3>
               <div className={Styles.statsContainer}>
                 <VisualHitpoints
                   name={"player"}
                   value={player.hitpoints}
-                  // @Ro: how could we store the initial hitpoints and not the updated value?
-                  maxValue={20}
+                  maxValue={maxPlayerLife}
                 />
                 <VisualHitpoints
                   name={"monster"}
                   value={monster.hitpoints}
-                  maxValue={13}
+                  maxValue={maxMonsterLife}
                 />
               </div>
             </div>
@@ -57,22 +66,34 @@ export const Game = () => {
             setPlayer={setPlayer}
             setMonster={setMonster}
             setStageWinner={setStageWinner}
+            setLogMessage={setLogMessage}
           />
         )}
       </section>
       <section className={Styles.logSection}>
         <h2 className={Styles.title}>Log</h2>
-        <div className={Styles.description}></div>
+        <div className={Styles.description}>
+          {logMessage.map((msg, i) => (
+            <div className={Styles.logMessage} key={i}>
+              {msg}
+            </div>
+          ))}
+        </div>
       </section>
       <section className={Styles.userActionsSection}>
-        <h2>Player: 'replace with player's name'</h2>
+        <h2>Player</h2>
         <div className={Styles.buttonContainer}>
           <button
             className={`${Styles.btn} ${Styles.attack}`}
             onClick={async () => {
-              setStageWinner(
-                await doBattle({ player, monster, setPlayer, setMonster })
-              );
+              const winner = await doBattle({
+                player,
+                monster,
+                setPlayer,
+                setMonster,
+                handleMessages,
+              });
+              setStageWinner(winner);
             }}
             disabled={monster.hitpoints <= 0 || player.hitpoints <= 0 || hasWon}
           >
@@ -87,6 +108,11 @@ export const Game = () => {
               onClick={() => {
                 setPlayer({ ...player, position: player.position + 1 });
                 setStageWinner("monster");
+                handleMessages(
+                  player.position === 2
+                    ? "player win!"
+                    : `player changed to stage ${player.position + 1}`
+                );
               }}
               className={`${Styles.btn} ${Styles.advance}`}
               disabled={stageWinner === "monster"}
@@ -117,10 +143,12 @@ const ResetGame = ({
   setPlayer,
   setMonster,
   setStageWinner,
+  setLogMessage,
 }: {
   setPlayer: React.Dispatch<React.SetStateAction<Player>>;
   setMonster: React.Dispatch<React.SetStateAction<Monster>>;
   setStageWinner: React.Dispatch<React.SetStateAction<BattleWinner>>;
+  setLogMessage: React.Dispatch<React.SetStateAction<string[]>>;
 }) => {
   return (
     <button
@@ -128,6 +156,7 @@ const ResetGame = ({
         setPlayer(generatePlayer());
         setMonster(generateMonster());
         setStageWinner("monster");
+        setLogMessage([]);
       }}
       className={`${Styles.btn} ${Styles.reset}`}
     >
@@ -149,26 +178,47 @@ const doBattle = async ({
   monster,
   setPlayer,
   setMonster,
+  handleMessages,
 }: {
   player: Player;
   monster: Monster;
   setPlayer: React.Dispatch<React.SetStateAction<Player>>;
   setMonster: React.Dispatch<React.SetStateAction<Monster>>;
+  handleMessages: (message: string) => number;
 }): Promise<BattleWinner> => {
   let playerHitpoints = player.hitpoints;
   let monsterHitpoints = monster.hitpoints;
 
-  let whoseAttacking = Math.random() * 1 >= 0.5 ? "monster" : "player";
+  let firstAttacking = Math.random() * 1 >= 0.5 ? "monster" : "player";
+  handleMessages(`first attacking: ${firstAttacking}`);
 
   while (playerHitpoints >= 0 && monsterHitpoints >= 0) {
-    if (whoseAttacking === "monster") {
+    if (firstAttacking === "monster") {
       playerHitpoints -= monster.attackDamage;
       setPlayer({ ...player, hitpoints: playerHitpoints });
+      handleMessages(
+        playerHitpoints >= 0
+          ? `${firstAttacking === "monster" ? "player" : "monster"} loose ${
+              monster.attackDamage
+            } hitpoints due to an attack by a ${firstAttacking}`
+          : `${
+              firstAttacking === "monster" ? "player" : "monster"
+            } was killed by a ${firstAttacking}`
+      );
     } else {
       monsterHitpoints -= player.attackDamage;
       setMonster({ ...monster, hitpoints: monsterHitpoints });
+      handleMessages(
+        monsterHitpoints >= 0
+          ? `${firstAttacking === "monster" ? "player" : "monster"} loose ${
+              player.attackDamage
+            } hitpoints due to an attack by a ${firstAttacking}`
+          : `${
+              firstAttacking === "monster" ? "player" : "monster"
+            } was killed by a ${firstAttacking}`
+      );
     }
-    whoseAttacking = whoseAttacking === "monster" ? "player" : "monster";
+    firstAttacking = firstAttacking === "monster" ? "player" : "monster";
 
     await sleep(1000);
   }
@@ -181,7 +231,9 @@ const VisualHitpoints = ({ name, value, maxValue }: Hitpoints) => {
     <div className={Styles.hitpointsContainer}>
       <h3 className={Styles.user}>{name}</h3>
       <progress
-        className={`${Styles.progress} ${value <= 2 ? Styles.lowHealth : ""}`}
+        className={`${Styles.progress} ${value <= 4 ? Styles.lowHealth : ""} ${
+          value <= 2 ? Styles.aboutToDie : ""
+        }`}
         value={value}
         max={maxValue}
       />

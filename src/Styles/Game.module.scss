@@ -34,7 +34,9 @@ $clr-blue_1: #5b9ad2;
 $clr-blue_2: #4164df;
 $clr-blue_3: #92a8d1;
 $clr-purple_1: #5a4bad;
-$clr-magenta_1: #ff6f61;
+$clr-red_1: #ff6f61;
+$clr-red_2: #c34033;
+
 $borderRadius: 3px;
 
 /*#endregion Colors*/
@@ -159,6 +161,12 @@ $borderRadius: 3px;
     padding: 1.2rem;
     box-shadow: inset 0 0 20px 7px $clr-gray_2;
     border-radius: $borderRadius;
+    @include layoutMargin(vertical, 8px);
+    overflow-y: scroll;
+
+    .logMessage {
+      font-size: 0.95rem;
+    }
   }
 }
 /*#endregion Log section*/
@@ -218,7 +226,7 @@ $borderRadius: 3px;
     background-color: $clr-blue_3;
   }
   &.heal {
-    background-color: $clr-magenta_1;
+    background-color: $clr-red_1;
   }
   &.run {
     color: black;
@@ -256,7 +264,12 @@ $borderRadius: 3px;
     }
     &.lowHealth {
       &::-webkit-progress-value {
-        background-color: $clr-magenta_1;
+        background-color: $clr-red_1;
+      }
+    }
+    &.aboutToDie {
+      &::-webkit-progress-value {
+        background-color: $clr-red_2;
       }
     }
   }
