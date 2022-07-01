@@ -7,6 +7,9 @@ import Styles from "./Styles/Game.module.scss";
 import { BattleWinner, Hitpoints, Monster, Player } from "./types";
 import { sleep } from "./utils/utils";
 
+const MID_LIFE = 7;
+const LOW_LIFE = 3;
+
 export const Game = () => {
   const [player, setPlayer] = useState<Player>(generatePlayer());
   const [monster, setMonster] = useState<Monster>(generateMonster());
@@ -18,14 +21,14 @@ export const Game = () => {
   const [logMessage, setLogMessage] = useState<string[]>([]);
   const [stageWinner, setStageWinner] = useState<BattleWinner>("monster");
   const gameTiles = 3;
-  const hasWon = player.position + 1 > gameTiles;
+  const hasWon = player.stage + 1 > gameTiles;
 
   let playerIsDead = player.hitpoints <= 0;
 
   // Each time the player enters a new stage, a new monster will be generated
   useEffect(() => {
     setMonster(generateMonster());
-  }, [player.position]);
+  }, [player.stage]);
 
   const handleMessages = (message: string) => {
     const dateTime = new Date().toLocaleTimeString();
@@ -34,8 +37,14 @@ export const Game = () => {
 
   return (
     <div className={Styles.gameGrid}>
-      <section className={Styles.gameSection}>
-        <Tile stage={player.position} />
+      <section className={Styles.mapSection}>
+        <Tile
+          stage={player.stage}
+          player={player}
+          setPlayer={setPlayer}
+          monster={monster}
+          setMonster={setMonster}
+        />
       </section>
 
       <section className={Styles.statsSection}>
@@ -106,12 +115,12 @@ export const Game = () => {
           {!hasWon && !playerIsDead && (
             <button
               onClick={() => {
-                setPlayer({ ...player, position: player.position + 1 });
+                setPlayer({ ...player, stage: player.stage + 1 });
                 setStageWinner("monster");
                 handleMessages(
-                  player.position === 2
+                  player.stage === 2
                     ? "player win!"
-                    : `player changed to stage ${player.position + 1}`
+                    : `player changed to stage ${player.stage + 1}`
                 );
               }}
               className={`${Styles.btn} ${Styles.advance}`}
@@ -131,10 +140,37 @@ export const Game = () => {
   );
 };
 
-const Tile = ({ stage }: { stage: number }) => {
+const Tile = ({
+  stage,
+  player,
+  setPlayer,
+  monster,
+  setMonster,
+}: {
+  stage: number;
+  player: Player;
+  monster: Monster;
+  setPlayer: React.Dispatch<React.SetStateAction<Player>>;
+  setMonster: React.Dispatch<React.SetStateAction<Monster>>;
+}) => {
   return (
     <div className={Styles.tileContainer}>
       <h2>{`Stage: ${stage}`}</h2>
+      <div
+        className={`${Styles.player} ${
+          player.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
+        } ${player.hitpoints <= 0 ? Styles.isDead : ""} `}
+        style={{ left: `${0}px` }}
+      >
+        <span>player</span>
+      </div>
+      <div
+        className={`${Styles.monster} ${
+          monster.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
+        } ${monster.hitpoints <= 0 ? Styles.isDead : ""} `}
+      >
+        <span>monster</span>
+      </div>
     </div>
   );
 };
@@ -231,9 +267,9 @@ const VisualHitpoints = ({ name, value, maxValue }: Hitpoints) => {
     <div className={Styles.hitpointsContainer}>
       <h3 className={Styles.user}>{name}</h3>
       <progress
-        className={`${Styles.progress} ${value <= 4 ? Styles.lowHealth : ""} ${
-          value <= 2 ? Styles.aboutToDie : ""
-        }`}
+        className={`${Styles.progress} ${
+          value <= MID_LIFE ? Styles.lowHealth : ""
+        } ${value <= LOW_LIFE ? Styles.aboutToDie : ""}`}
         value={value}
         max={maxValue}
       />

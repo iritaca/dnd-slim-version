@@ -6,6 +6,7 @@ export const players: Player[] = [
   {
     hitpoints: 20,
     attackDamage: 5,
-    position: 0,
+    stage: 0,
+    coords: [0, 0],
   },
 ];

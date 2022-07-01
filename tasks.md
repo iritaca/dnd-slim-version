@@ -25,8 +25,8 @@
   ## Tasks 3:
 
   - player should appear in random position x=(0 - 100px) y=(0 - 100px)
-  - monster should appear in random position (neer to the top of the screen )
-  - when monster died it should disappear
+  - monster should appear in random position
+  - [x] when monster died it should disappear
   - when monster is kill, a door should appear in a random position
 
 # Monday tasks - player movement
@@ -43,3 +43,11 @@
 - Money could also be used to buy some things in a store
 
 # @isaac doubts ...
+
+offsetTop: 8
+offsetLeft: 24
+
+clientHeight: 599
+clientWidth: 961
+
+should be taken as 0 0,
