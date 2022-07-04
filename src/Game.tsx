@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-import { generatePlayer } from "./PlayerAndMonsters/player";
+import { generatePlayer, players } from "./PlayerAndMonsters/player";
 import { generateMonster } from "./PlayerAndMonsters/monsters";
 
 import Styles from "./Styles/Game.module.scss";
@@ -13,6 +13,8 @@ const LOW_LIFE = 3;
 export const Game = () => {
   const [player, setPlayer] = useState<Player>(generatePlayer());
   const [monster, setMonster] = useState<Monster>(generateMonster());
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Adding the initial max life points
   const { hitpoints: maxPlayerLife } = generatePlayer();
@@ -28,6 +30,12 @@ export const Game = () => {
   // Each time the player enters a new stage, a new monster will be generated
   useEffect(() => {
     setMonster(generateMonster());
+    const mapSize = containerRef.current;
+
+    if (mapSize) {
+      randomCoords(setPlayer, mapSize);
+      randomCoords(setMonster, mapSize);
+    }
   }, [player.stage]);
 
   const handleMessages = (message: string) => {
@@ -37,20 +45,18 @@ export const Game = () => {
 
   return (
     <div className={Styles.gameGrid}>
-      <section className={Styles.mapSection}>
-        <Tile
-          stage={player.stage}
-          player={player}
-          setPlayer={setPlayer}
-          monster={monster}
-          setMonster={setMonster}
-        />
+      <section className={Styles.mapSection} ref={containerRef}>
+        <Tile stage={player.stage} player={player} monster={monster} />
       </section>
 
       <section className={Styles.statsSection}>
         {!hasWon && (
           <>
-            <h2 className={Styles.statsHeader}>Stats </h2>
+            <div className={Styles.statsHeaderContainer}>
+              <h2 className={Styles.statsHeader}>Stats </h2>
+              <h2>{`Stage ${player.stage}`}</h2>
+            </div>
+
             <div className={Styles.statsBody}>
               <div className={Styles.statsContainer}>
                 <VisualHitpoints
@@ -143,24 +149,22 @@ export const Game = () => {
 const Tile = ({
   stage,
   player,
-  setPlayer,
   monster,
-  setMonster,
 }: {
   stage: number;
   player: Player;
   monster: Monster;
-  setPlayer: React.Dispatch<React.SetStateAction<Player>>;
-  setMonster: React.Dispatch<React.SetStateAction<Monster>>;
 }) => {
   return (
     <div className={Styles.tileContainer}>
-      <h2>{`Stage: ${stage}`}</h2>
       <div
         className={`${Styles.player} ${
           player.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
         } ${player.hitpoints <= 0 ? Styles.isDead : ""} `}
-        style={{ left: `${0}px` }}
+        style={{
+          left: `${player.coords.xPosition}px`,
+          top: `${player.coords.yPosition}px`,
+        }}
       >
         <span>player</span>
       </div>
@@ -168,6 +172,10 @@ const Tile = ({
         className={`${Styles.monster} ${
           monster.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
         } ${monster.hitpoints <= 0 ? Styles.isDead : ""} `}
+        style={{
+          left: `${monster.coords.xPosition}px`,
+          top: `${monster.coords.yPosition}px`,
+        }}
       >
         <span>monster</span>
       </div>
@@ -276,3 +284,61 @@ const VisualHitpoints = ({ name, value, maxValue }: Hitpoints) => {
     </div>
   );
 };
+
+function randomCoords<T>(
+  setter: React.Dispatch<React.SetStateAction<T>>,
+  mapSize: HTMLDivElement
+) {
+  // element size represents a monster or a player
+  const elementSize = 16;
+
+  const containerWidth = mapSize.clientWidth;
+  // const containerWidth = 962;
+  const containerHeight = mapSize.clientHeight;
+  // const containerHeight = 601;
+
+  // monster starts at the top of the map within a Y range from 0 - 50px
+  const monsterMaxPositionInY = 50;
+
+  // Player starts at the bottom of the map within a Y range from 0 - npx
+  const playerMaxPositionInY = 80;
+
+  const mathRounded = (containerSize: number) => {
+    const mathCalc = Math.floor(Math.random() * containerSize);
+    return mathCalc;
+  };
+
+  const randomPosition = (containerSize: number) => {
+    let mathCalc = mathRounded(containerSize);
+    if (mathCalc <= 16) {
+      mathCalc += elementSize;
+    } else if (mathCalc + elementSize >= containerSize) {
+      mathCalc -= elementSize;
+    }
+    return mathCalc;
+  };
+
+  // setPlayer({
+  //   ...player,
+  //   coords: {
+  //     xPosition: randomPosition(containerWidth || 0),
+  //     yPosition: containerHeight || 0 - randomPosition(playerMaxPositionInY),
+  //   },
+  // });
+
+  setter((obj) => ({
+    ...obj,
+    coords: {
+      xPosition: randomPosition(containerWidth || 0),
+      yPosition: containerHeight || 0 - randomPosition(playerMaxPositionInY),
+    },
+  }));
+
+  // setMonster({
+  //   ...monster,
+  //   coords: {
+  //     xPosition: randomPosition(containerWidth),
+  //     yPosition: randomPosition(monsterMaxPositionInY),
+  //   },
+  // });
+}
