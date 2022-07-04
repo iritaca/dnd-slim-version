@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import { generatePlayer, players } from "./PlayerAndMonsters/player";
+import { generatePlayer } from "./PlayerAndMonsters/player";
 import { generateMonster } from "./PlayerAndMonsters/monsters";
 
 import Styles from "./Styles/Game.module.scss";
@@ -33,8 +33,8 @@ export const Game = () => {
     const mapSize = containerRef.current;
 
     if (mapSize) {
-      randomCoords(setPlayer, mapSize);
-      randomCoords(setMonster, mapSize);
+      randomCoords(setPlayer, mapSize, "player");
+      randomCoords(setMonster, mapSize, "monster");
     }
   }, [player.stage]);
 
@@ -46,7 +46,7 @@ export const Game = () => {
   return (
     <div className={Styles.gameGrid}>
       <section className={Styles.mapSection} ref={containerRef}>
-        <Tile stage={player.stage} player={player} monster={monster} />
+        <Tile player={player} monster={monster} />
       </section>
 
       <section className={Styles.statsSection}>
@@ -146,15 +146,7 @@ export const Game = () => {
   );
 };
 
-const Tile = ({
-  stage,
-  player,
-  monster,
-}: {
-  stage: number;
-  player: Player;
-  monster: Monster;
-}) => {
+const Tile = ({ player, monster }: { player: Player; monster: Monster }) => {
   return (
     <div className={Styles.tileContainer}>
       <div
@@ -287,15 +279,14 @@ const VisualHitpoints = ({ name, value, maxValue }: Hitpoints) => {
 
 function randomCoords<T>(
   setter: React.Dispatch<React.SetStateAction<T>>,
-  mapSize: HTMLDivElement
+  mapSize: HTMLDivElement,
+  initialRandomHeight: "player" | "monster"
 ) {
-  // element size represents a monster or a player
+  // elementSize represents a monster or a player
   const elementSize = 16;
 
   const containerWidth = mapSize.clientWidth;
-  // const containerWidth = 962;
   const containerHeight = mapSize.clientHeight;
-  // const containerHeight = 601;
 
   // monster starts at the top of the map within a Y range from 0 - 50px
   const monsterMaxPositionInY = 50;
@@ -318,27 +309,15 @@ function randomCoords<T>(
     return mathCalc;
   };
 
-  // setPlayer({
-  //   ...player,
-  //   coords: {
-  //     xPosition: randomPosition(containerWidth || 0),
-  //     yPosition: containerHeight || 0 - randomPosition(playerMaxPositionInY),
-  //   },
-  // });
-
+  // setter that works with setPlayer or setMonster
   setter((obj) => ({
     ...obj,
     coords: {
       xPosition: randomPosition(containerWidth || 0),
-      yPosition: containerHeight || 0 - randomPosition(playerMaxPositionInY),
+      yPosition:
+        initialRandomHeight === "player"
+          ? (containerHeight || 0) - randomPosition(playerMaxPositionInY)
+          : randomPosition(monsterMaxPositionInY),
     },
   }));
-
-  // setMonster({
-  //   ...monster,
-  //   coords: {
-  //     xPosition: randomPosition(containerWidth),
-  //     yPosition: randomPosition(monsterMaxPositionInY),
-  //   },
-  // });
 }
