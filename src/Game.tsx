@@ -10,11 +10,88 @@ import { sleep } from "./utils/utils";
 const MID_LIFE = 7;
 const LOW_LIFE = 3;
 
+const PLAYER_MOVEMENT_MULTIPLIER = 3;
+
 export const Game = () => {
   const [player, setPlayer] = useState<Player>(generatePlayer());
   const [monster, setMonster] = useState<Monster>(generateMonster());
 
+  // Player Movement
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mapSize = containerRef.current;
+    const keyboardHandler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowUp" || e.key === "w") {
+        setPlayer((player) => ({
+          ...player,
+          coords: {
+            xPosition: player.coords.xPosition,
+            yPosition: isOutOfBounds(
+              player.coords.yPosition,
+              mapSize,
+              "yAxisUp"
+            )
+              ? (player.coords.yPosition -= PLAYER_MOVEMENT_MULTIPLIER)
+              : player.coords.yPosition,
+          },
+        }));
+      }
+
+      if (e.key === "ArrowDown" || e.key === "s") {
+        setPlayer((player) => ({
+          ...player,
+          coords: {
+            xPosition: player.coords.xPosition,
+
+            yPosition: isOutOfBounds(
+              player.coords.yPosition,
+              mapSize,
+              "yAxisDown"
+            )
+              ? (player.coords.yPosition += PLAYER_MOVEMENT_MULTIPLIER)
+              : player.coords.yPosition,
+          },
+        }));
+      }
+
+      if (e.key === "ArrowLeft" || e.key === "a") {
+        setPlayer((player) => ({
+          ...player,
+          coords: {
+            xPosition: isOutOfBounds(
+              player.coords.xPosition,
+              mapSize,
+              "xAxisLeft"
+            )
+              ? (player.coords.xPosition -= PLAYER_MOVEMENT_MULTIPLIER)
+              : player.coords.xPosition,
+            yPosition: player.coords.yPosition,
+          },
+        }));
+      }
+
+      if (e.key === "ArrowRight" || e.key === "d") {
+        setPlayer((player) => ({
+          ...player,
+          coords: {
+            xPosition: isOutOfBounds(
+              player.coords.xPosition,
+              mapSize,
+              "xAxisRight"
+            )
+              ? (player.coords.xPosition += PLAYER_MOVEMENT_MULTIPLIER)
+              : player.coords.xPosition,
+            yPosition: player.coords.yPosition,
+          },
+        }));
+      }
+    };
+    document.addEventListener("keydown", keyboardHandler);
+    return () => {
+      document.removeEventListener("keydown", keyboardHandler);
+    };
+  }, []);
 
   // Adding the initial max life points
   const { hitpoints: maxPlayerLife } = generatePlayer();
@@ -30,6 +107,7 @@ export const Game = () => {
   // Each time the player enters a new stage, a new monster will be generated
   useEffect(() => {
     setMonster(generateMonster());
+
     const mapSize = containerRef.current;
 
     if (mapSize) {
@@ -320,4 +398,39 @@ function randomCoords<T>(
           : randomPosition(monsterMaxPositionInY),
     },
   }));
+}
+
+function isOutOfBounds(
+  position: Number,
+  bounds: HTMLDivElement | null,
+  direction: "yAxisUp" | "yAxisDown" | "xAxisLeft" | "xAxisRight"
+) {
+  const outOfBound = true;
+  if (!bounds || !outOfBound) return;
+
+  const maxWidthBound = bounds?.clientWidth;
+  const maxHeightBound = bounds?.clientHeight;
+
+  if (direction === "yAxisUp" && position <= 0) {
+    console.log("can't go beyond the limits");
+
+    return !outOfBound;
+  }
+  if (direction === "yAxisDown" && position >= maxHeightBound - 16) {
+    console.log("can't go beyond the limits");
+
+    return !outOfBound;
+  }
+  if (direction === "xAxisLeft" && position <= 0) {
+    console.log("can't go beyond the limits");
+
+    return !outOfBound;
+  }
+  if (direction === "xAxisRight" && position >= maxWidthBound - 16) {
+    console.log("can't go beyond the limits");
+
+    return !outOfBound;
+  }
+
+  return outOfBound;
 }

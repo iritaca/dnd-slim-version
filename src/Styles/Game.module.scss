@@ -112,7 +112,7 @@ $lowLife: $clr-red_2;
   width: var(--containerSize);
   height: var(--containerSize);
   opacity: 1;
-  transition: 0.5s all $cubicBezier;
+  transition: 0.5s background-color $cubicBezier;
   span {
     position: absolute;
     top: -10px;
@@ -280,7 +280,7 @@ $lowLife: $clr-red_2;
     border: {
       width: 2px;
       radius: 20px;
-      style: solid;
+      style: double;
       color: rgba(black, 0.45);
     }
 

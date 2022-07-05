@@ -24,15 +24,21 @@
 
   ## Tasks 3:
 
-  - player should appear in random position x=(0 - 100px) y=(0 - 100px)
-  - monster should appear in random position
+  - [x] player should appear in random position x=(0 - 100px) y=(0 - 100px)
+  - [x] monster should appear in random position
   - [x] when monster died it should disappear
-  - when monster is kill, a door should appear in a random position
+  - [ ] when monster is kill, a door should appear in a random position
 
-# Monday tasks - player movement
+  ## Task 4:
 
-- [] player movement
-- [] player collsions with things , e.g. need to be near to the monster to do a battle,
+- [x] player movement
+- [x] No out of bounds movement
+- [] if player box is inside monster box, enable attack button
+
+- [] Random monster movement
+  - [] Get in call to discuss timeouts or intervals
+  - [] If player touches monster, monster stops moving (instant refs)
+  - [] Allow monster to flee
 
 # ideas of what to learn next
 
@@ -43,11 +49,3 @@
 - Money could also be used to buy some things in a store
 
 # @isaac doubts ...
-
-offsetTop: 8
-offsetLeft: 24
-
-clientHeight: 599
-clientWidth: 961
-
-should be taken as 0 0,
