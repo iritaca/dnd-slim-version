@@ -4,23 +4,36 @@ import { generatePlayer } from "./PlayerAndMonsters/player";
 import { generateMonster } from "./PlayerAndMonsters/monsters";
 
 import Styles from "./Styles/Game.module.scss";
-import { BattleWinner, Hitpoints, Monster, Player } from "./types";
+import {
+  BattleWinner,
+  Hitpoints,
+  Monster,
+  NextLevelDoor,
+  Player,
+} from "./types";
 import { sleep } from "./utils/utils";
+import { generateDoor } from "./PlayerAndMonsters/door";
 
 const MID_LIFE = 7;
 const LOW_LIFE = 3;
-
-const PLAYER_MOVEMENT_MULTIPLIER = 3;
 
 export const Game = () => {
   const [player, setPlayer] = useState<Player>(generatePlayer());
   const [monster, setMonster] = useState<Monster>(generateMonster());
 
-  // Player Movement
+  //Ro, the initial state of the door should not be to generate a new one, what should be the initial state?
+  const [nextLevelDoor, setNextLevelDoor] = useState<NextLevelDoor>(
+    generateDoor()
+  );
+
+  let doorIsVisible = monster.hitpoints <= 0;
+
+  // Map size
   const containerRef = useRef<HTMLDivElement>(null);
 
+  //Player movement
   useEffect(() => {
-    const mapSize = containerRef.current;
+    const mapSize = containerRef.current; // this one is repeated, to avoid a log warning
     const keyboardHandler = (e: KeyboardEvent) => {
       if (e.key === "ArrowUp" || e.key === "w") {
         setPlayer((player) => ({
@@ -32,7 +45,7 @@ export const Game = () => {
               mapSize,
               "yAxisUp"
             )
-              ? (player.coords.yPosition -= PLAYER_MOVEMENT_MULTIPLIER)
+              ? (player.coords.yPosition -= player.movementMult)
               : player.coords.yPosition,
           },
         }));
@@ -49,7 +62,7 @@ export const Game = () => {
               mapSize,
               "yAxisDown"
             )
-              ? (player.coords.yPosition += PLAYER_MOVEMENT_MULTIPLIER)
+              ? (player.coords.yPosition += player.movementMult)
               : player.coords.yPosition,
           },
         }));
@@ -64,7 +77,7 @@ export const Game = () => {
               mapSize,
               "xAxisLeft"
             )
-              ? (player.coords.xPosition -= PLAYER_MOVEMENT_MULTIPLIER)
+              ? (player.coords.xPosition -= player.movementMult)
               : player.coords.xPosition,
             yPosition: player.coords.yPosition,
           },
@@ -80,7 +93,7 @@ export const Game = () => {
               mapSize,
               "xAxisRight"
             )
-              ? (player.coords.xPosition += PLAYER_MOVEMENT_MULTIPLIER)
+              ? (player.coords.xPosition += player.movementMult)
               : player.coords.xPosition,
             yPosition: player.coords.yPosition,
           },
@@ -116,6 +129,16 @@ export const Game = () => {
     }
   }, [player.stage]);
 
+  // Door is only visible if the monster is dead
+  // @Ro, i added another if inside this effect to make sure that the monster is dead and that the door should appear only at that moment, and not when the monster is filling his life
+  useEffect(() => {
+    const mapSize = containerRef.current;
+    setNextLevelDoor(generateDoor());
+    if (monster.hitpoints <= 0) {
+      if (mapSize) randomCoords(setNextLevelDoor, mapSize, "door");
+    }
+  }, [doorIsVisible]);
+
   const handleMessages = (message: string) => {
     const dateTime = new Date().toLocaleTimeString();
     return logMessage.unshift(`${dateTime} ${message}`);
@@ -124,7 +147,7 @@ export const Game = () => {
   return (
     <div className={Styles.gameGrid}>
       <section className={Styles.mapSection} ref={containerRef}>
-        <Tile player={player} monster={monster} />
+        <Tile player={player} monster={monster} door={nextLevelDoor} />
       </section>
 
       <section className={Styles.statsSection}>
@@ -188,9 +211,18 @@ export const Game = () => {
               });
               setStageWinner(winner);
             }}
-            disabled={monster.hitpoints <= 0 || player.hitpoints <= 0 || hasWon}
+            disabled={
+              monster.hitpoints <= 0 ||
+              player.hitpoints <= 0 ||
+              hasWon ||
+              (player.coords.xPosition !== monster.coords.xPosition &&
+                player.coords.yPosition !== monster.coords.yPosition)
+            }
           >
-            Attack
+            <>
+              {/* {console.log(player.coords, monster.coords)} */}
+              Attack
+            </>
           </button>
           <button className={`${Styles.btn} ${Styles.heal}`} disabled>
             Heal
@@ -208,7 +240,11 @@ export const Game = () => {
                 );
               }}
               className={`${Styles.btn} ${Styles.advance}`}
-              disabled={stageWinner === "monster"}
+              disabled={
+                stageWinner === "monster" ||
+                (player.coords.xPosition !== nextLevelDoor.coords.xPosition &&
+                  player.coords.yPosition !== nextLevelDoor.coords.yPosition)
+              }
             >
               Advance
             </button>
@@ -224,7 +260,15 @@ export const Game = () => {
   );
 };
 
-const Tile = ({ player, monster }: { player: Player; monster: Monster }) => {
+const Tile = ({
+  player,
+  monster,
+  door,
+}: {
+  player: Player;
+  monster: Monster;
+  door: NextLevelDoor;
+}) => {
   return (
     <div className={Styles.tileContainer}>
       <div
@@ -249,6 +293,20 @@ const Tile = ({ player, monster }: { player: Player; monster: Monster }) => {
       >
         <span>monster</span>
       </div>
+
+      {monster.hitpoints <= 0 && (
+        <div
+          className={`${Styles.door} ${
+            monster.hitpoints <= 0 ? Styles.isVisible : ""
+          }`}
+          style={{
+            left: `${door.coords.xPosition}px`,
+            top: `${door.coords.yPosition}px`,
+          }}
+        >
+          <span></span>
+        </div>
+      )}
     </div>
   );
 };
@@ -358,7 +416,7 @@ const VisualHitpoints = ({ name, value, maxValue }: Hitpoints) => {
 function randomCoords<T>(
   setter: React.Dispatch<React.SetStateAction<T>>,
   mapSize: HTMLDivElement,
-  initialRandomHeight: "player" | "monster"
+  initialRandomHeight: "player" | "monster" | "door"
 ) {
   // elementSize represents a monster or a player
   const elementSize = 16;
@@ -379,7 +437,7 @@ function randomCoords<T>(
 
   const randomPosition = (containerSize: number) => {
     let mathCalc = mathRounded(containerSize);
-    if (mathCalc <= 16) {
+    if (mathCalc <= elementSize) {
       mathCalc += elementSize;
     } else if (mathCalc + elementSize >= containerSize) {
       mathCalc -= elementSize;
@@ -387,15 +445,25 @@ function randomCoords<T>(
     return mathCalc;
   };
 
-  // setter that works with setPlayer or setMonster
+  const objectMaxYPosition = () => {
+    let randomPositionInY;
+    if (initialRandomHeight === "player") {
+      randomPositionInY =
+        (containerHeight || 0) - randomPosition(playerMaxPositionInY);
+    } else if (initialRandomHeight === "monster") {
+      randomPositionInY = randomPosition(monsterMaxPositionInY);
+    } else {
+      randomPositionInY = randomPosition(containerHeight);
+    }
+    return randomPositionInY;
+  };
+
+  // setter that works with setPlayer, setMonster and setDoor
   setter((obj) => ({
     ...obj,
     coords: {
       xPosition: randomPosition(containerWidth || 0),
-      yPosition:
-        initialRandomHeight === "player"
-          ? (containerHeight || 0) - randomPosition(playerMaxPositionInY)
-          : randomPosition(monsterMaxPositionInY),
+      yPosition: objectMaxYPosition(),
     },
   }));
 }

@@ -3,12 +3,17 @@ export interface Player {
   hitpoints: number;
   attackDamage: number;
   stage: number;
+  movementMult: number;
   coords: CoordsInMap;
 }
 
 export interface Monster {
   hitpoints: number;
   attackDamage: number;
+  coords: CoordsInMap;
+}
+
+export interface NextLevelDoor {
   coords: CoordsInMap;
 }
 

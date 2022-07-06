@@ -27,13 +27,14 @@
   - [x] player should appear in random position x=(0 - 100px) y=(0 - 100px)
   - [x] monster should appear in random position
   - [x] when monster died it should disappear
-  - [ ] when monster is kill, a door should appear in a random position
+  - [x] when monster is kill, a door should appear in a random position
 
   ## Task 4:
 
 - [x] player movement
 - [x] No out of bounds movement
-- [] if player box is inside monster box, enable attack button
+- [~] if player box is inside monster box, enable attack button
+- [~] if player box is inside door box, enable advance button
 
 - [] Random monster movement
   - [] Get in call to discuss timeouts or intervals
