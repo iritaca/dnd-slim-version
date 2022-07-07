@@ -105,6 +105,13 @@ $lowLife: $red_2;
   }
 }
 
+.playerCenterPoint {
+  position: absolute;
+  .elementTitle {
+    top: -20px;
+  }
+}
+
 .player,
 .monster {
   display: inline-block;
@@ -115,13 +122,7 @@ $lowLife: $red_2;
   height: var(--containerSize);
   opacity: 1;
   transition: 0.5s background-color $cubicBezier;
-  span {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.6rem;
-  }
+
   &.isAboutToDie {
     background-color: $lowLife;
   }
@@ -131,6 +132,51 @@ $lowLife: $red_2;
 }
 .player {
   z-index: 1;
+  &.pulseAnimation {
+    position: absolute;
+    &::after {
+      content: "";
+      position: absolute;
+      transform: translate(-50%, -50%);
+      left: 50%;
+      top: 50%;
+      border: 1px solid $red_1;
+      opacity: 0.5;
+      --pulseSize: 16px;
+      width: var(--pulseSize);
+      height: var(--pulseSize);
+      animation: {
+        name: pulse;
+        duration: 1s;
+        iteration-count: infinite;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+}
+
+.elementTitle {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+}
+
+.player {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .door {

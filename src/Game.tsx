@@ -21,7 +21,7 @@ export const Game = () => {
   const [player, setPlayer] = useState<Player>(generatePlayer());
   const [monster, setMonster] = useState<Monster>(generateMonster());
 
-  //Ro, the initial state of the door should not be to generate a new one, what should be the initial state?
+  // @Ro, the initial state of the door should not be to generate a new one, but what should be the initial state?
   const [nextLevelDoor, setNextLevelDoor] = useState<NextLevelDoor>(
     generateDoor()
   );
@@ -30,6 +30,10 @@ export const Game = () => {
 
   // Map size
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const playerRef = useRef<HTMLDivElement>(null);
+  const monsterRef = useRef<HTMLDivElement>(null);
+  const doorRef = useRef<HTMLDivElement>(null);
 
   //Player movement
   useEffect(() => {
@@ -117,6 +121,15 @@ export const Game = () => {
 
   let playerIsDead = player.hitpoints <= 0;
 
+  const doorIsClosed =
+    stageWinner === "monster" || !isCollisioning(doorRef, playerRef);
+
+  const attackIsDisabled =
+    monster.hitpoints <= 0 ||
+    player.hitpoints <= 0 ||
+    hasWon ||
+    !isCollisioning(monsterRef, playerRef);
+
   // Each time the player enters a new stage, a new monster will be generated
   useEffect(() => {
     setMonster(generateMonster());
@@ -137,7 +150,7 @@ export const Game = () => {
     if (monster.hitpoints <= 0) {
       if (mapSize) randomCoords(setNextLevelDoor, mapSize, "door");
     }
-  }, [doorIsVisible]);
+  }, [doorIsVisible, monster.hitpoints]);
 
   const handleMessages = (message: string) => {
     const dateTime = new Date().toLocaleTimeString();
@@ -147,7 +160,14 @@ export const Game = () => {
   return (
     <div className={Styles.gameGrid}>
       <section className={Styles.mapSection} ref={containerRef}>
-        <Tile player={player} monster={monster} door={nextLevelDoor} />
+        <Tile
+          player={player}
+          monster={monster}
+          door={nextLevelDoor}
+          playerRef={playerRef}
+          monsterRef={monsterRef}
+          doorRef={doorRef}
+        />
       </section>
 
       <section className={Styles.statsSection}>
@@ -211,18 +231,9 @@ export const Game = () => {
               });
               setStageWinner(winner);
             }}
-            disabled={
-              monster.hitpoints <= 0 ||
-              player.hitpoints <= 0 ||
-              hasWon ||
-              (player.coords.xPosition !== monster.coords.xPosition &&
-                player.coords.yPosition !== monster.coords.yPosition)
-            }
+            disabled={attackIsDisabled}
           >
-            <>
-              {/* {console.log(player.coords, monster.coords)} */}
-              Attack
-            </>
+            Attack
           </button>
           <button className={`${Styles.btn} ${Styles.heal}`} disabled>
             Heal
@@ -240,11 +251,7 @@ export const Game = () => {
                 );
               }}
               className={`${Styles.btn} ${Styles.advance}`}
-              disabled={
-                stageWinner === "monster" ||
-                (player.coords.xPosition !== nextLevelDoor.coords.xPosition &&
-                  player.coords.yPosition !== nextLevelDoor.coords.yPosition)
-              }
+              disabled={doorIsClosed}
             >
               Advance
             </button>
@@ -264,15 +271,22 @@ const Tile = ({
   player,
   monster,
   door,
+  playerRef,
+  monsterRef,
+  doorRef,
 }: {
   player: Player;
   monster: Monster;
   door: NextLevelDoor;
+  playerRef: React.RefObject<HTMLDivElement>;
+  monsterRef: React.RefObject<HTMLDivElement>;
+  doorRef: React.RefObject<HTMLDivElement>;
 }) => {
   return (
     <div className={Styles.tileContainer}>
       <div
-        className={`${Styles.player} ${
+        ref={playerRef}
+        className={`${Styles.playerCenterPoint} ${
           player.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
         } ${player.hitpoints <= 0 ? Styles.isDead : ""} `}
         style={{
@@ -280,9 +294,15 @@ const Tile = ({
           top: `${player.coords.yPosition}px`,
         }}
       >
-        <span>player</span>
+        <div
+          className={`${Styles.player} ${
+            isCollisioning(monsterRef, playerRef) ? Styles.pulseAnimation : ""
+          }`}
+        ></div>
+        <span className={Styles.elementTitle}>player</span>
       </div>
       <div
+        ref={monsterRef}
         className={`${Styles.monster} ${
           monster.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
         } ${monster.hitpoints <= 0 ? Styles.isDead : ""} `}
@@ -291,11 +311,12 @@ const Tile = ({
           top: `${monster.coords.yPosition}px`,
         }}
       >
-        <span>monster</span>
+        <span className={Styles.elementTitle}>monster</span>
       </div>
 
       {monster.hitpoints <= 0 && (
         <div
+          ref={doorRef}
           className={`${Styles.door} ${
             monster.hitpoints <= 0 ? Styles.isVisible : ""
           }`}
@@ -479,26 +500,55 @@ function isOutOfBounds(
   const maxWidthBound = bounds?.clientWidth;
   const maxHeightBound = bounds?.clientHeight;
 
-  if (direction === "yAxisUp" && position <= 0) {
+  if (direction === "yAxisUp" && position <= 7) {
     console.log("can't go beyond the limits");
 
     return !outOfBound;
   }
-  if (direction === "yAxisDown" && position >= maxHeightBound - 16) {
+  if (direction === "yAxisDown" && position >= maxHeightBound - 12) {
     console.log("can't go beyond the limits");
 
     return !outOfBound;
   }
-  if (direction === "xAxisLeft" && position <= 0) {
+  if (direction === "xAxisLeft" && position <= 7) {
     console.log("can't go beyond the limits");
 
     return !outOfBound;
   }
-  if (direction === "xAxisRight" && position >= maxWidthBound - 16) {
+  if (direction === "xAxisRight" && position >= maxWidthBound - 12) {
     console.log("can't go beyond the limits");
 
     return !outOfBound;
   }
 
   return outOfBound;
+}
+
+function isCollisioning(
+  container: React.RefObject<HTMLDivElement>,
+  content: React.RefObject<HTMLDivElement>
+) {
+  //Container like monster and door needs these 4 points to create a bounding box, which would let us know if the player is inside the container
+  const containerAttributes = container.current?.getBoundingClientRect();
+  const containerXOrigin = containerAttributes?.left;
+  const containerYOrigin = containerAttributes?.top;
+  const containerXBoundry = containerAttributes?.right;
+  const containerYBoundry = containerAttributes?.bottom;
+
+  //content: in this case the player only needs the point origin
+  const contentAttributes = content.current?.getBoundingClientRect();
+  const contentXOrigin = contentAttributes?.left;
+  const contentYOrigin = contentAttributes?.top;
+
+  const increasedRange = 6;
+
+  const contentIsInsideContainer =
+    (contentXOrigin || 0) <= (containerXBoundry || 0) + increasedRange &&
+    (contentXOrigin || 0) >= (containerXOrigin || 0) - increasedRange &&
+    (contentYOrigin || 0) <= (containerYBoundry || 0) + increasedRange &&
+    (contentYOrigin || 0) >= (containerYOrigin || 0) - increasedRange;
+
+  // console.log(containerAttributes, contentXOrigin, contentYOrigin);
+
+  return contentIsInsideContainer;
 }

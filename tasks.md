@@ -33,8 +33,8 @@
 
 - [x] player movement
 - [x] No out of bounds movement
-- [~] if player box is inside monster box, enable attack button
-- [~] if player box is inside door box, enable advance button
+- [x] if player box is inside monster box, enable attack button
+- [x] if player box is inside door box, enable advance button
 
 - [] Random monster movement
   - [] Get in call to discuss timeouts or intervals
