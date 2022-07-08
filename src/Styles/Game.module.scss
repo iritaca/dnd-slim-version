@@ -107,6 +107,9 @@ $lowLife: $red_2;
 
 .playerCenterPoint {
   position: absolute;
+  width: 1px;
+  height: 1px;
+  border: 1px solid purple;
   .elementTitle {
     top: -20px;
   }
@@ -117,7 +120,8 @@ $lowLife: $red_2;
   display: inline-block;
   position: absolute;
   --containerSize: 1rem;
-  background-color: $fullLife;
+  // background-color: $fullLife;
+  border: 1px solid red;
   width: var(--containerSize);
   height: var(--containerSize);
   opacity: 1;
@@ -308,6 +312,7 @@ $lowLife: $red_2;
 }
 
 .btn {
+  $parent: &;
   font-size: 1.2rem;
   transition: transform 0.1s $cubicBezier;
   position: relative;
@@ -335,18 +340,19 @@ $lowLife: $red_2;
       cursor: not-allowed;
     }
   }
-  &.attack {
-    background-color: $green_1;
+
+  $btn-colors: (
+    attack: $green_1,
+    advance: $purple_1,
+    reset: $blue_3,
+    heal: $red_1,
+  );
+  @each $name, $color in $btn-colors {
+    &.#{$name} {
+      background-color: $color;
+    }
   }
-  &.advance {
-    background-color: $purple_1;
-  }
-  &.reset {
-    background-color: $blue_3;
-  }
-  &.heal {
-    background-color: $red_1;
-  }
+
   &.run {
     color: black;
   }
@@ -397,3 +403,23 @@ $lowLife: $red_2;
   }
 }
 /*#endregion hitpoints */
+
+//nestes maps
+// $nested-colors: (
+//   primary: (
+//     light: lightblue,
+//     normal: blue,
+//   ),
+//   secondary: (
+//     light: pink,
+//     normal: red,
+//   ),
+// );
+
+// @function nested-colors($color, $shade) {
+//   @return map.get($nested-colors, $color, $shade);
+// }
+
+// .testColor {
+//   background-color: nested-colors(primary, normal);
+// }

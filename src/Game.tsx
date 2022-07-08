@@ -12,7 +12,6 @@ import {
   Player,
 } from "./types";
 import { sleep } from "./utils/utils";
-import { generateDoor } from "./PlayerAndMonsters/door";
 
 const MID_LIFE = 7;
 const LOW_LIFE = 3;
@@ -20,22 +19,17 @@ const LOW_LIFE = 3;
 export const Game = () => {
   const [player, setPlayer] = useState<Player>(generatePlayer());
   const [monster, setMonster] = useState<Monster>(generateMonster());
-
-  // @Ro, the initial state of the door should not be to generate a new one, but what should be the initial state?
-  const [nextLevelDoor, setNextLevelDoor] = useState<NextLevelDoor>(
-    generateDoor()
-  );
+  const [nextLevelDoor, setNextLevelDoor] = useState<NextLevelDoor>();
 
   let doorIsVisible = monster.hitpoints <= 0;
 
-  // Map size
+  // element size, and position references
   const containerRef = useRef<HTMLDivElement>(null);
-
   const playerRef = useRef<HTMLDivElement>(null);
   const monsterRef = useRef<HTMLDivElement>(null);
   const doorRef = useRef<HTMLDivElement>(null);
 
-  //Player movement
+  //Player keyboard movement
   useEffect(() => {
     const mapSize = containerRef.current; // this one is repeated, to avoid a log warning
     const keyboardHandler = (e: KeyboardEvent) => {
@@ -130,27 +124,58 @@ export const Game = () => {
     hasWon ||
     !isCollisioning(monsterRef, playerRef);
 
-  // Each time the player enters a new stage, a new monster will be generated
+  // Each time the player enters a new stage, a new monster will be generated and new positions will be assignated
   useEffect(() => {
     setMonster(generateMonster());
 
     const mapSize = containerRef.current;
 
     if (mapSize) {
-      randomCoords(setPlayer, mapSize, "player");
-      randomCoords(setMonster, mapSize, "monster");
+      let playerCoords = generateRandomCoords({
+        mapSize: mapSize,
+        element: "player",
+      });
+      setPlayer((player) => ({
+        ...player,
+        coords: {
+          xPosition: playerCoords.xCoords,
+          yPosition: playerCoords.yCoords,
+        },
+      }));
+      let monsterCoords = generateRandomCoords({
+        mapSize: mapSize,
+        element: "monster",
+      });
+      setMonster((monster) => ({
+        ...monster,
+        coords: {
+          xPosition: monsterCoords.xCoords,
+          yPosition: monsterCoords.yCoords,
+        },
+      }));
     }
   }, [player.stage]);
 
-  // Door is only visible if the monster is dead
+  // @isaac continue with generateRandomCoords for the door as part of the randomCoords refactor
+
+  // Door is visible, but no longer necessary
   // @Ro, i added another if inside this effect to make sure that the monster is dead and that the door should appear only at that moment, and not when the monster is filling his life
-  useEffect(() => {
-    const mapSize = containerRef.current;
-    setNextLevelDoor(generateDoor());
-    if (monster.hitpoints <= 0) {
-      if (mapSize) randomCoords(setNextLevelDoor, mapSize, "door");
-    }
-  }, [doorIsVisible, monster.hitpoints]);
+  // useEffect(() => {
+  //   const mapSize = containerRef.current;
+  //   setNextLevelDoor({ coords: { xPosition: 0, yPosition: 0 } });
+  //   if (monster.hitpoints <= 0) {
+  //     if (mapSize) randomCoords(setNextLevelDoor, mapSize, "door");
+  //     console.log("hola");
+  //   }
+  // }, [doorIsVisible, monster.hitpoints]);
+
+  // useEffect(() => {
+  //   const mapSize = containerRef.current;
+  //   if (monster.hitpoints <= 0 && mapSize) {
+  //     const coords = randomCoords(mapSize, 'door')
+  //     setNextLevelDoor(coords)
+  //   }
+  // }, [monster.hitpoints]);
 
   const handleMessages = (message: string) => {
     const dateTime = new Date().toLocaleTimeString();
@@ -249,6 +274,7 @@ export const Game = () => {
                     ? "player win!"
                     : `player changed to stage ${player.stage + 1}`
                 );
+                //setDoor undefined
               }}
               className={`${Styles.btn} ${Styles.advance}`}
               disabled={doorIsClosed}
@@ -277,7 +303,7 @@ const Tile = ({
 }: {
   player: Player;
   monster: Monster;
-  door: NextLevelDoor;
+  door: NextLevelDoor | undefined;
   playerRef: React.RefObject<HTMLDivElement>;
   monsterRef: React.RefObject<HTMLDivElement>;
   doorRef: React.RefObject<HTMLDivElement>;
@@ -320,10 +346,12 @@ const Tile = ({
           className={`${Styles.door} ${
             monster.hitpoints <= 0 ? Styles.isVisible : ""
           }`}
-          style={{
-            left: `${door.coords.xPosition}px`,
-            top: `${door.coords.yPosition}px`,
-          }}
+          style={
+            {
+              // left: `${door.coords.xPosition}px`,
+              // top: `${door.coords.yPosition}px`,
+            }
+          }
         >
           <span></span>
         </div>
@@ -434,59 +462,55 @@ const VisualHitpoints = ({ name, value, maxValue }: Hitpoints) => {
   );
 };
 
-function randomCoords<T>(
-  setter: React.Dispatch<React.SetStateAction<T>>,
-  mapSize: HTMLDivElement,
-  initialRandomHeight: "player" | "monster" | "door"
-) {
-  // elementSize represents a monster or a player
-  const elementSize = 16;
+function generateRandomCoords({
+  mapSize,
+  element,
+}: {
+  mapSize: HTMLDivElement;
+  element: "player" | "monster" | "door";
+}) {
+  //monster and player size
+  const generalSize = 16;
 
-  const containerWidth = mapSize.clientWidth;
-  const containerHeight = mapSize.clientHeight;
+  //randomCoords(mapSize,element)
+  const mapMaxWidth = mapSize.clientWidth;
+  const mapMaxHeight = mapSize.clientHeight;
 
-  // monster starts at the top of the map within a Y range from 0 - 50px
+  // Monster max starting height position
   const monsterMaxPositionInY = 50;
 
-  // Player starts at the bottom of the map within a Y range from 0 - npx
+  // Player max starting height position
   const playerMaxPositionInY = 80;
 
-  const mathRounded = (containerSize: number) => {
-    const mathCalc = Math.floor(Math.random() * containerSize);
-    return mathCalc;
-  };
-
-  const randomPosition = (containerSize: number) => {
-    let mathCalc = mathRounded(containerSize);
-    if (mathCalc <= elementSize) {
-      mathCalc += elementSize;
-    } else if (mathCalc + elementSize >= containerSize) {
-      mathCalc -= elementSize;
+  // Calculates the min and max value, and if the element random position is smaller or bigger than the map, the size of the element is added.
+  const randomPosition = (maxContainerHeight: number) => {
+    let randomPosition = Math.random() * maxContainerHeight;
+    if (randomPosition <= generalSize) {
+      randomPosition += generalSize;
+    } else if (randomPosition + generalSize >= maxContainerHeight) {
+      randomPosition -= generalSize;
     }
-    return mathCalc;
+    return randomPosition;
   };
 
-  const objectMaxYPosition = () => {
-    let randomPositionInY;
-    if (initialRandomHeight === "player") {
-      randomPositionInY =
-        (containerHeight || 0) - randomPosition(playerMaxPositionInY);
-    } else if (initialRandomHeight === "monster") {
-      randomPositionInY = randomPosition(monsterMaxPositionInY);
+  // Evaluating maxPositionInY
+  const randomYPosition = () => {
+    let yRandomPosition;
+    if (element === "player") {
+      yRandomPosition = mapMaxHeight - randomPosition(playerMaxPositionInY);
+    } else if (element === "monster") {
+      yRandomPosition = randomPosition(monsterMaxPositionInY);
     } else {
-      randomPositionInY = randomPosition(containerHeight);
+      yRandomPosition = randomPosition(mapMaxHeight);
     }
-    return randomPositionInY;
+    return yRandomPosition;
   };
 
-  // setter that works with setPlayer, setMonster and setDoor
-  setter((obj) => ({
-    ...obj,
-    coords: {
-      xPosition: randomPosition(containerWidth || 0),
-      yPosition: objectMaxYPosition(),
-    },
-  }));
+  const xCoords = randomPosition(mapMaxWidth);
+  const yCoords = randomYPosition();
+  const randomPositionCoords = { xCoords, yCoords };
+
+  return randomPositionCoords;
 }
 
 function isOutOfBounds(
@@ -548,7 +572,12 @@ function isCollisioning(
     (contentYOrigin || 0) <= (containerYBoundry || 0) + increasedRange &&
     (contentYOrigin || 0) >= (containerYOrigin || 0) - increasedRange;
 
-  // console.log(containerAttributes, contentXOrigin, contentYOrigin);
+  // console.log({
+  //   containerAttributes,
+  //   contentXOrigin,
+  //   contentYOrigin,
+  //   contentIsInsideContainer,
+  // });
 
   return contentIsInsideContainer;
 }
