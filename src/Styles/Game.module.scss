@@ -1,3 +1,4 @@
+@use "sass:color";
 /*#region generic styles*/
 * {
   margin: 0;
@@ -120,8 +121,7 @@ $lowLife: $red_2;
   display: inline-block;
   position: absolute;
   --containerSize: 1rem;
-  // background-color: $fullLife;
-  border: 1px solid red;
+  background-color: $fullLife;
   width: var(--containerSize);
   height: var(--containerSize);
   opacity: 1;
@@ -314,7 +314,7 @@ $lowLife: $red_2;
 .btn {
   $parent: &;
   font-size: 1.2rem;
-  transition: transform 0.1s $cubicBezier;
+  transition: all 0.2s $cubicBezier;
   position: relative;
   &:hover:not(:disabled) {
     transform: translate(-6px, -10px);
@@ -335,7 +335,9 @@ $lowLife: $red_2;
   }
   &:disabled,
   &[disabled] {
-    filter: grayscale(0.8);
+    filter: grayscale(0.9);
+    background-color: invert($blue_3);
+    color: invert(white);
     &:hover {
       cursor: not-allowed;
     }
@@ -403,23 +405,3 @@ $lowLife: $red_2;
   }
 }
 /*#endregion hitpoints */
-
-//nestes maps
-// $nested-colors: (
-//   primary: (
-//     light: lightblue,
-//     normal: blue,
-//   ),
-//   secondary: (
-//     light: pink,
-//     normal: red,
-//   ),
-// );
-
-// @function nested-colors($color, $shade) {
-//   @return map.get($nested-colors, $color, $shade);
-// }
-
-// .testColor {
-//   background-color: nested-colors(primary, normal);
-// }

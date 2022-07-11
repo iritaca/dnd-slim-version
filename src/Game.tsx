@@ -106,7 +106,6 @@ export const Game = () => {
     hasWon ||
     !isCollisioning(monsterRef, playerRef);
 
-  // Each time the player enters a new stage, a new monster will be generated and new positions will be assignated
   useEffect(() => {
     setMonster(generateMonster());
 
@@ -149,6 +148,37 @@ export const Game = () => {
     return logMessage.unshift(`${dateTime} ${message}`);
   };
 
+  //Button actions
+  const attackButton = async () => {
+    const winner = await doBattle({
+      player,
+      monster,
+      setPlayer,
+      setMonster,
+      handleMessages,
+    });
+    setStageWinner(winner);
+  };
+
+  const advanceButton = () => {
+    setPlayer({ ...player, stage: player.stage + 1 });
+    setStageWinner("monster");
+    handleMessages(
+      player.stage === 2
+        ? "player win!"
+        : `player changed to stage ${player.stage + 1}`
+    );
+    setNextLevelDoor(undefined);
+  };
+
+  const resetGame = () => {
+    setPlayer(generatePlayer());
+    setMonster(generateMonster());
+    setStageWinner("monster");
+    setLogMessage([]);
+    setNextLevelDoor(undefined);
+  };
+
   return (
     <div className={Styles.gameGrid}>
       <section className={Styles.mapSection} ref={containerRef}>
@@ -189,13 +219,14 @@ export const Game = () => {
 
         {hasWon && <WinScreen />}
         {player.hitpoints <= 0 && <DeathScreen />}
+
         {(hasWon || player.hitpoints <= 0) && (
-          <ResetGame
-            setPlayer={setPlayer}
-            setMonster={setMonster}
-            setStageWinner={setStageWinner}
-            setLogMessage={setLogMessage}
-          />
+          <button
+            className={`${Styles.btn} ${Styles.reset}`}
+            onClick={resetGame}
+          >
+            Reset Game
+          </button>
         )}
       </section>
       <section className={Styles.logSection}>
@@ -213,16 +244,7 @@ export const Game = () => {
         <div className={Styles.buttonContainer}>
           <button
             className={`${Styles.btn} ${Styles.attack}`}
-            onClick={async () => {
-              const winner = await doBattle({
-                player,
-                monster,
-                setPlayer,
-                setMonster,
-                handleMessages,
-              });
-              setStageWinner(winner);
-            }}
+            onClick={attackButton}
             disabled={attackIsDisabled}
           >
             Attack
@@ -233,16 +255,7 @@ export const Game = () => {
 
           {!hasWon && !playerIsDead && (
             <button
-              onClick={() => {
-                setPlayer({ ...player, stage: player.stage + 1 });
-                setStageWinner("monster");
-                handleMessages(
-                  player.stage === 2
-                    ? "player win!"
-                    : `player changed to stage ${player.stage + 1}`
-                );
-                //setDoor undefined
-              }}
+              onClick={advanceButton}
               className={`${Styles.btn} ${Styles.advance}`}
               disabled={doorIsClosed}
             >
@@ -250,9 +263,12 @@ export const Game = () => {
             </button>
           )}
 
-          {/* Run would work as an exit button in case the player wants to restart the game */}
-          <button className={`${Styles.btn} ${Styles.run}`} disabled>
-            Run
+          <button
+            className={`${Styles.btn} ${Styles.run}`}
+            onClick={resetGame}
+            disabled={player.stage === 0}
+          >
+            Escape
           </button>
         </div>
       </section>
@@ -322,32 +338,6 @@ const Tile = ({
         </div>
       )}
     </div>
-  );
-};
-
-const ResetGame = ({
-  setPlayer,
-  setMonster,
-  setStageWinner,
-  setLogMessage,
-}: {
-  setPlayer: React.Dispatch<React.SetStateAction<Player>>;
-  setMonster: React.Dispatch<React.SetStateAction<Monster>>;
-  setStageWinner: React.Dispatch<React.SetStateAction<BattleWinner>>;
-  setLogMessage: React.Dispatch<React.SetStateAction<string[]>>;
-}) => {
-  return (
-    <button
-      onClick={() => {
-        setPlayer(generatePlayer());
-        setMonster(generateMonster());
-        setStageWinner("monster");
-        setLogMessage([]);
-      }}
-      className={`${Styles.btn} ${Styles.reset}`}
-    >
-      Reset Game
-    </button>
   );
 };
 
@@ -536,13 +526,6 @@ function isCollisioning(
     (contentXOrigin || 0) >= (containerXOrigin || 0) - increasedRange &&
     (contentYOrigin || 0) <= (containerYBoundry || 0) + increasedRange &&
     (contentYOrigin || 0) >= (containerYOrigin || 0) - increasedRange;
-
-  // console.log({
-  //   containerAttributes,
-  //   contentXOrigin,
-  //   contentYOrigin,
-  //   contentIsInsideContainer,
-  // });
 
   return contentIsInsideContainer;
 }
