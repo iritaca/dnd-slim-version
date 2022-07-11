@@ -33,12 +33,14 @@ export const Game = () => {
     const mapSize = containerRef.current;
     const monsterMovementOverTime = setInterval(() => {
       if (mapSize) {
+        // @isaac modificar esta seccion para que aplique el cambio en el ultimo monstruo creado
         const coords = randomNearbyMovement({ monster });
 
         setMonster((monster) => ({ ...monster, coords }));
       }
     }, 3000);
     //@ro, duda. esto funciona siempre y cuando window.clearInterval se use en los siguientes 2 lugares.
+
     if (playerTouchingMonster) {
       console.log("Esta tocandome!");
       window.clearInterval(monsterMovementOverTime);
@@ -328,6 +330,8 @@ const Tile = ({
         <div
           className={`${Styles.player} ${
             isCollisioning(monsterRef, playerRef) ? Styles.pulseAnimation : ""
+          } ${
+            isCollisioning(doorRef, playerRef) ? Styles.playerEnteringDoor : ""
           }`}
         ></div>
         <span className={Styles.elementTitle}>player</span>
@@ -350,13 +354,18 @@ const Tile = ({
           ref={doorRef}
           className={`${Styles.door} ${
             monster.hitpoints <= 0 ? Styles.isVisible : ""
-          }`}
+          } `}
           style={{
             left: `${door?.coords.x}px`,
             top: `${door?.coords.y}px`,
           }}
         >
           <span></span>
+          <div
+            className={
+              isCollisioning(doorRef, playerRef) ? Styles.openTheDoor : ""
+            }
+          ></div>
         </div>
       )}
     </div>

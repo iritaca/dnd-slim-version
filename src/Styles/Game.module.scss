@@ -135,6 +135,10 @@ $lowLife: $red_2;
   }
 }
 .player {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.3s ease;
   z-index: 1;
   &.pulseAnimation {
     position: absolute;
@@ -156,6 +160,9 @@ $lowLife: $red_2;
       }
     }
   }
+  &EnteringDoor {
+    transform: translate(-50%, -50%) scale(0.6);
+  }
 }
 
 @keyframes pulse {
@@ -175,12 +182,6 @@ $lowLife: $red_2;
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.6rem;
-}
-
-.player {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .door {
@@ -218,6 +219,14 @@ $lowLife: $red_2;
   }
   &.isVisible {
     opacity: 1;
+  }
+  .openTheDoor {
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    height: 100%;
+    width: 10px;
+    background-color: black;
   }
 }
 /*#endregion map/tile section*/
