@@ -6,6 +6,6 @@ export const monsters: Monster[] = [
   {
     hitpoints: 13,
     attackDamage: 3,
-    coords: { xPosition: 0, yPosition: 0 },
+    coords: { x: 0, y: 0 },
   },
 ];

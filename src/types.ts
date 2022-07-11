@@ -1,4 +1,4 @@
-type CoordsInMap = { xPosition: number; yPosition: number };
+type CoordsInMap = { x: number; y: number };
 export interface Player {
   hitpoints: number;
   attackDamage: number;

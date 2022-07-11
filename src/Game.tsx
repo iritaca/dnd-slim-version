@@ -21,8 +21,6 @@ export const Game = () => {
   const [monster, setMonster] = useState<Monster>(generateMonster());
   const [nextLevelDoor, setNextLevelDoor] = useState<NextLevelDoor>();
 
-  let doorIsVisible = monster.hitpoints <= 0;
-
   // element size, and position references
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -31,20 +29,16 @@ export const Game = () => {
 
   //Player keyboard movement
   useEffect(() => {
-    const mapSize = containerRef.current; // this one is repeated, to avoid a log warning
+    const mapSize = containerRef.current;
     const keyboardHandler = (e: KeyboardEvent) => {
       if (e.key === "ArrowUp" || e.key === "w") {
         setPlayer((player) => ({
           ...player,
           coords: {
-            xPosition: player.coords.xPosition,
-            yPosition: isOutOfBounds(
-              player.coords.yPosition,
-              mapSize,
-              "yAxisUp"
-            )
-              ? (player.coords.yPosition -= player.movementMult)
-              : player.coords.yPosition,
+            x: player.coords.x,
+            y: isOutOfBounds(player.coords.y, mapSize, "yAxisUp")
+              ? (player.coords.y -= player.movementMult)
+              : player.coords.y,
           },
         }));
       }
@@ -53,15 +47,11 @@ export const Game = () => {
         setPlayer((player) => ({
           ...player,
           coords: {
-            xPosition: player.coords.xPosition,
+            x: player.coords.x,
 
-            yPosition: isOutOfBounds(
-              player.coords.yPosition,
-              mapSize,
-              "yAxisDown"
-            )
-              ? (player.coords.yPosition += player.movementMult)
-              : player.coords.yPosition,
+            y: isOutOfBounds(player.coords.y, mapSize, "yAxisDown")
+              ? (player.coords.y += player.movementMult)
+              : player.coords.y,
           },
         }));
       }
@@ -70,14 +60,10 @@ export const Game = () => {
         setPlayer((player) => ({
           ...player,
           coords: {
-            xPosition: isOutOfBounds(
-              player.coords.xPosition,
-              mapSize,
-              "xAxisLeft"
-            )
-              ? (player.coords.xPosition -= player.movementMult)
-              : player.coords.xPosition,
-            yPosition: player.coords.yPosition,
+            x: isOutOfBounds(player.coords.x, mapSize, "xAxisLeft")
+              ? (player.coords.x -= player.movementMult)
+              : player.coords.x,
+            y: player.coords.y,
           },
         }));
       }
@@ -86,14 +72,10 @@ export const Game = () => {
         setPlayer((player) => ({
           ...player,
           coords: {
-            xPosition: isOutOfBounds(
-              player.coords.xPosition,
-              mapSize,
-              "xAxisRight"
-            )
-              ? (player.coords.xPosition += player.movementMult)
-              : player.coords.xPosition,
-            yPosition: player.coords.yPosition,
+            x: isOutOfBounds(player.coords.x, mapSize, "xAxisRight")
+              ? (player.coords.x += player.movementMult)
+              : player.coords.x,
+            y: player.coords.y,
           },
         }));
       }
@@ -137,10 +119,7 @@ export const Game = () => {
       });
       setPlayer((player) => ({
         ...player,
-        coords: {
-          xPosition: playerCoords.xCoords,
-          yPosition: playerCoords.yCoords,
-        },
+        coords: playerCoords,
       }));
       let monsterCoords = generateRandomCoords({
         mapSize: mapSize,
@@ -148,34 +127,22 @@ export const Game = () => {
       });
       setMonster((monster) => ({
         ...monster,
-        coords: {
-          xPosition: monsterCoords.xCoords,
-          yPosition: monsterCoords.yCoords,
-        },
+        coords: monsterCoords,
       }));
     }
   }, [player.stage]);
 
-  // @isaac continue with generateRandomCoords for the door as part of the randomCoords refactor
+  useEffect(() => {
+    const mapSize = containerRef.current;
+    if (monster.hitpoints <= 0 && mapSize) {
+      const coords = generateRandomCoords({
+        mapSize: mapSize,
+        element: "door",
+      });
 
-  // Door is visible, but no longer necessary
-  // @Ro, i added another if inside this effect to make sure that the monster is dead and that the door should appear only at that moment, and not when the monster is filling his life
-  // useEffect(() => {
-  //   const mapSize = containerRef.current;
-  //   setNextLevelDoor({ coords: { xPosition: 0, yPosition: 0 } });
-  //   if (monster.hitpoints <= 0) {
-  //     if (mapSize) randomCoords(setNextLevelDoor, mapSize, "door");
-  //     console.log("hola");
-  //   }
-  // }, [doorIsVisible, monster.hitpoints]);
-
-  // useEffect(() => {
-  //   const mapSize = containerRef.current;
-  //   if (monster.hitpoints <= 0 && mapSize) {
-  //     const coords = randomCoords(mapSize, 'door')
-  //     setNextLevelDoor(coords)
-  //   }
-  // }, [monster.hitpoints]);
+      setNextLevelDoor({ coords: coords });
+    }
+  }, [monster.hitpoints]);
 
   const handleMessages = (message: string) => {
     const dateTime = new Date().toLocaleTimeString();
@@ -316,8 +283,8 @@ const Tile = ({
           player.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
         } ${player.hitpoints <= 0 ? Styles.isDead : ""} `}
         style={{
-          left: `${player.coords.xPosition}px`,
-          top: `${player.coords.yPosition}px`,
+          left: `${player.coords.x}px`,
+          top: `${player.coords.y}px`,
         }}
       >
         <div
@@ -333,8 +300,8 @@ const Tile = ({
           monster.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
         } ${monster.hitpoints <= 0 ? Styles.isDead : ""} `}
         style={{
-          left: `${monster.coords.xPosition}px`,
-          top: `${monster.coords.yPosition}px`,
+          left: `${monster.coords.x}px`,
+          top: `${monster.coords.y}px`,
         }}
       >
         <span className={Styles.elementTitle}>monster</span>
@@ -346,12 +313,10 @@ const Tile = ({
           className={`${Styles.door} ${
             monster.hitpoints <= 0 ? Styles.isVisible : ""
           }`}
-          style={
-            {
-              // left: `${door.coords.xPosition}px`,
-              // top: `${door.coords.yPosition}px`,
-            }
-          }
+          style={{
+            left: `${door?.coords.x}px`,
+            top: `${door?.coords.y}px`,
+          }}
         >
           <span></span>
         </div>
@@ -506,9 +471,9 @@ function generateRandomCoords({
     return yRandomPosition;
   };
 
-  const xCoords = randomPosition(mapMaxWidth);
-  const yCoords = randomYPosition();
-  const randomPositionCoords = { xCoords, yCoords };
+  const x = randomPosition(mapMaxWidth);
+  const y = randomYPosition();
+  const randomPositionCoords = { x, y };
 
   return randomPositionCoords;
 }

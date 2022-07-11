@@ -8,6 +8,6 @@ export const players: Player[] = [
     attackDamage: 5,
     stage: 0,
     movementMult: 2,
-    coords: { xPosition: 0, yPosition: 0 },
+    coords: { x: 0, y: 0 },
   },
 ];
