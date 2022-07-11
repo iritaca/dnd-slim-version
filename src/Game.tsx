@@ -33,9 +33,7 @@ export const Game = () => {
     const mapSize = containerRef.current;
     const monsterMovementOverTime = setInterval(() => {
       if (mapSize) {
-        const coords = randomNearbyMovement({
-          coords: { x: monster.coords.x, y: monster.coords.y },
-        });
+        const coords = randomNearbyMovement({ monster });
 
         setMonster((monster) => ({ ...monster, coords }));
       }
@@ -492,11 +490,8 @@ function generateRandomCoords({
   return randomPositionCoords;
 }
 
-const randomNearbyMovement = ({
-  coords,
-}: {
-  coords: { x: number; y: number };
-}) => {
+const randomNearbyMovement = ({ monster }: { monster: Monster }) => {
+  const { coords } = monster;
   const maxRandomMovement = 30;
   const xRand = Math.random() * maxRandomMovement;
   const yRand = Math.random() * maxRandomMovement;
