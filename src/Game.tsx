@@ -27,6 +27,28 @@ export const Game = () => {
   const monsterRef = useRef<HTMLDivElement>(null);
   const doorRef = useRef<HTMLDivElement>(null);
 
+  //Monster random movement
+  const playerTouchingMonster = isCollisioning(monsterRef, playerRef);
+  useEffect(() => {
+    const mapSize = containerRef.current;
+    const monsterMovementOverTime = setInterval(() => {
+      if (mapSize) {
+        const coords = randomNearbyMovement({
+          coords: { x: monster.coords.x, y: monster.coords.y },
+        });
+
+        setMonster((monster) => ({ ...monster, coords }));
+      }
+    }, 3000);
+    //@ro, duda. esto funciona siempre y cuando window.clearInterval se use en los siguientes 2 lugares.
+    if (playerTouchingMonster) {
+      console.log("Esta tocandome!");
+      window.clearInterval(monsterMovementOverTime);
+    }
+
+    return () => clearInterval(monsterMovementOverTime);
+  }, [!playerTouchingMonster]);
+
   //Player keyboard movement
   useEffect(() => {
     const mapSize = containerRef.current;
@@ -106,6 +128,7 @@ export const Game = () => {
     hasWon ||
     !isCollisioning(monsterRef, playerRef);
 
+  //Action that happens after advancing to the next stage
   useEffect(() => {
     setMonster(generateMonster());
 
@@ -114,7 +137,7 @@ export const Game = () => {
     if (mapSize) {
       let playerCoords = generateRandomCoords({
         mapSize: mapSize,
-        element: "player",
+        spaceInMap: "player",
       });
       setPlayer((player) => ({
         ...player,
@@ -122,7 +145,7 @@ export const Game = () => {
       }));
       let monsterCoords = generateRandomCoords({
         mapSize: mapSize,
-        element: "monster",
+        spaceInMap: "monster",
       });
       setMonster((monster) => ({
         ...monster,
@@ -131,12 +154,13 @@ export const Game = () => {
     }
   }, [player.stage]);
 
+  //Door is rendered
   useEffect(() => {
     const mapSize = containerRef.current;
     if (monster.hitpoints <= 0 && mapSize) {
       const coords = generateRandomCoords({
         mapSize: mapSize,
-        element: "door",
+        spaceInMap: "all",
       });
 
       setNextLevelDoor({ coords: coords });
@@ -419,15 +443,15 @@ const VisualHitpoints = ({ name, value, maxValue }: Hitpoints) => {
 
 function generateRandomCoords({
   mapSize,
-  element,
+  spaceInMap,
 }: {
   mapSize: HTMLDivElement;
-  element: "player" | "monster" | "door";
+  spaceInMap: "player" | "monster" | "all";
 }) {
   //monster and player size
   const generalSize = 16;
 
-  //randomCoords(mapSize,element)
+  //randomCoords(mapSize: spaceInMap)
   const mapMaxWidth = mapSize.clientWidth;
   const mapMaxHeight = mapSize.clientHeight;
 
@@ -451,9 +475,9 @@ function generateRandomCoords({
   // Evaluating maxPositionInY
   const randomYPosition = () => {
     let yRandomPosition;
-    if (element === "player") {
+    if (spaceInMap === "player") {
       yRandomPosition = mapMaxHeight - randomPosition(playerMaxPositionInY);
-    } else if (element === "monster") {
+    } else if (spaceInMap === "monster") {
       yRandomPosition = randomPosition(monsterMaxPositionInY);
     } else {
       yRandomPosition = randomPosition(mapMaxHeight);
@@ -467,6 +491,37 @@ function generateRandomCoords({
 
   return randomPositionCoords;
 }
+
+const randomNearbyMovement = ({
+  coords,
+}: {
+  coords: { x: number; y: number };
+}) => {
+  const maxRandomMovement = 30;
+  const xRand = Math.random() * maxRandomMovement;
+  const yRand = Math.random() * maxRandomMovement;
+  const xIsPositive = Math.random() * 1 > 0.5;
+  const yIsPositive = Math.random() * 1 > 0.5;
+  let x = 0;
+  let y = 0;
+  if (xIsPositive) {
+    x = coords.x + xRand;
+    if (yIsPositive) {
+      y = coords.y + yRand;
+    } else {
+      y = coords.y - yRand;
+    }
+  } else {
+    x = coords.x - xRand;
+    if (yIsPositive) {
+      y = coords.y + yRand;
+    } else {
+      y = coords.y - yRand;
+    }
+  }
+  const newCoords = { x, y };
+  return newCoords;
+};
 
 function isOutOfBounds(
   position: Number,
