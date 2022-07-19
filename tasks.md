@@ -37,8 +37,8 @@
 - [x] if player box is inside door box, enable advance button
 
 - [] Random monster movement
-  - [] Get in call to discuss timeouts or intervals
-  - [] If player touches monster, monster stops moving (instant refs)
+  - [x] Get in call to discuss timeouts or intervals
+  - [x] If player touches monster, monster stops moving (instant refs)
   - [] Allow monster to flee
 
 # ideas of what to learn next
@@ -50,3 +50,5 @@
 - Money could also be used to buy some things in a store
 
 # @isaac doubts ...
+
+if monster goes out of bounds, randomly possition it in the map and let it start moving.

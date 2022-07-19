@@ -15,11 +15,16 @@ import { sleep } from "./utils/utils";
 
 const MID_LIFE = 7;
 const LOW_LIFE = 3;
+const STAGES_LIMIT = 2;
+
+const GAME_TILES = 3;
 
 export const Game = () => {
   const [player, setPlayer] = useState<Player>(generatePlayer());
   const [monster, setMonster] = useState<Monster>(generateMonster());
   const [nextLevelDoor, setNextLevelDoor] = useState<NextLevelDoor>();
+  const [logMessage, setLogMessage] = useState<string[]>([]);
+  const [stageWinner, setStageWinner] = useState<BattleWinner>("monster");
 
   // element size, and position references
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,38 +32,52 @@ export const Game = () => {
   const monsterRef = useRef<HTMLDivElement>(null);
   const doorRef = useRef<HTMLDivElement>(null);
 
+  const hasWon = player.stage + 1 > GAME_TILES;
+  // Adding the initial max life points
+  const maxPlayerLife = player.maxHitpoints;
+  const maxMonsterLife = monster.maxHitpoints;
+
+  const playerIsDead = player.hitpoints <= 0;
+
+  const doorIsClosed =
+    stageWinner === "monster" || !isCollisioning(doorRef, playerRef);
+
+  const attackIsDisabled =
+    monster.hitpoints <= 0 ||
+    player.hitpoints <= 0 ||
+    hasWon ||
+    !isCollisioning(monsterRef, playerRef);
+
   //Monster random movement
   const playerTouchingMonster = isCollisioning(monsterRef, playerRef);
   useEffect(() => {
     const mapSize = containerRef.current;
-    const monsterMovementOverTime = setInterval(() => {
-      if (mapSize) {
-        // @isaac modificar esta seccion para que aplique el cambio en el ultimo monstruo creado
-        const coords = randomNearbyMovement({ monster });
+    let monsterMovementOverTime: any = 0;
+    if (!playerTouchingMonster) {
+      monsterMovementOverTime = setInterval(() => {
+        if (mapSize) {
+          // @isaac modificar esta seccion para que aplique el cambio en el ultimo monstruo creado
+          const coords = randomNearbyMovement({ monster });
 
-        setMonster((monster) => ({ ...monster, coords }));
-      }
-    }, 3000);
-    //@ro, duda. esto funciona siempre y cuando window.clearInterval se use en los siguientes 2 lugares.
-
-    if (playerTouchingMonster) {
-      console.log("Esta tocandome!");
-      window.clearInterval(monsterMovementOverTime);
+          setMonster((monster) => ({ ...monster, coords }));
+        }
+      }, 3000);
     }
 
     return () => clearInterval(monsterMovementOverTime);
-  }, [!playerTouchingMonster]);
+  }, [playerTouchingMonster]);
 
   //Player keyboard movement
   useEffect(() => {
     const mapSize = containerRef.current;
+
     const keyboardHandler = (e: KeyboardEvent) => {
       if (e.key === "ArrowUp" || e.key === "w") {
         setPlayer((player) => ({
           ...player,
           coords: {
             x: player.coords.x,
-            y: isOutOfBounds(player.coords.y, mapSize, "yAxisUp")
+            y: playerOutOfBounds(player.coords.y, mapSize, "yAxisUp")
               ? (player.coords.y -= player.movementMult)
               : player.coords.y,
           },
@@ -71,7 +90,7 @@ export const Game = () => {
           coords: {
             x: player.coords.x,
 
-            y: isOutOfBounds(player.coords.y, mapSize, "yAxisDown")
+            y: playerOutOfBounds(player.coords.y, mapSize, "yAxisDown")
               ? (player.coords.y += player.movementMult)
               : player.coords.y,
           },
@@ -82,7 +101,7 @@ export const Game = () => {
         setPlayer((player) => ({
           ...player,
           coords: {
-            x: isOutOfBounds(player.coords.x, mapSize, "xAxisLeft")
+            x: playerOutOfBounds(player.coords.x, mapSize, "xAxisLeft")
               ? (player.coords.x -= player.movementMult)
               : player.coords.x,
             y: player.coords.y,
@@ -94,7 +113,7 @@ export const Game = () => {
         setPlayer((player) => ({
           ...player,
           coords: {
-            x: isOutOfBounds(player.coords.x, mapSize, "xAxisRight")
+            x: playerOutOfBounds(player.coords.x, mapSize, "xAxisRight")
               ? (player.coords.x += player.movementMult)
               : player.coords.x,
             y: player.coords.y,
@@ -108,29 +127,9 @@ export const Game = () => {
     };
   }, []);
 
-  // Adding the initial max life points
-  const { hitpoints: maxPlayerLife } = generatePlayer();
-  const { hitpoints: maxMonsterLife } = generateMonster();
-
-  const [logMessage, setLogMessage] = useState<string[]>([]);
-  const [stageWinner, setStageWinner] = useState<BattleWinner>("monster");
-  const gameTiles = 3;
-  const hasWon = player.stage + 1 > gameTiles;
-
-  let playerIsDead = player.hitpoints <= 0;
-
-  const doorIsClosed =
-    stageWinner === "monster" || !isCollisioning(doorRef, playerRef);
-
-  const attackIsDisabled =
-    monster.hitpoints <= 0 ||
-    player.hitpoints <= 0 ||
-    hasWon ||
-    !isCollisioning(monsterRef, playerRef);
-
   //Action that happens after advancing to the next stage
   useEffect(() => {
-    setMonster(generateMonster());
+    if (player.stage <= STAGES_LIMIT) setMonster(generateMonster());
 
     const mapSize = containerRef.current;
 
@@ -152,6 +151,17 @@ export const Game = () => {
         coords: monsterCoords,
       }));
     }
+    //provisional fix
+    setTimeout(() => {
+      setLogMessage((logMessages) => [
+        addTimerToMessage(
+          player.stage <= STAGES_LIMIT
+            ? `Stage ${player.stage} started`
+            : "Player win!"
+        ),
+        ...logMessages,
+      ]);
+    }, 100);
   }, [player.stage]);
 
   //Door is rendered
@@ -167,10 +177,33 @@ export const Game = () => {
     }
   }, [monster.hitpoints]);
 
-  const handleMessages = (message: string) => {
+  const addTimerToMessage = (message: string) => {
     const dateTime = new Date().toLocaleTimeString();
-    return logMessage.unshift(`${dateTime} ${message}`);
+    return `${dateTime} ${message}`;
   };
+
+  // When the monster goes out of the map, a new monster position is generated
+  useEffect(() => {
+    const { x, y } = monster.coords;
+    const mapSize = containerRef.current;
+    const mapWidth = mapSize?.clientWidth;
+    const mapHeight = mapSize?.clientHeight;
+
+    if (mapSize) {
+      const newCoords = generateRandomCoords({
+        mapSize: mapSize,
+        spaceInMap: "all",
+      });
+      if (
+        x <= 0 ||
+        y <= 0 ||
+        x >= (mapWidth || 1000) ||
+        y >= (mapHeight || 1000)
+      ) {
+        setMonster((monster) => ({ ...monster, coords: newCoords }));
+      }
+    }
+  }, [monster.coords]);
 
   //Button actions
   const attackButton = async () => {
@@ -179,7 +212,8 @@ export const Game = () => {
       monster,
       setPlayer,
       setMonster,
-      handleMessages,
+      setLogMessage,
+      addTimerToMessage,
     });
     setStageWinner(winner);
   };
@@ -187,11 +221,6 @@ export const Game = () => {
   const advanceButton = () => {
     setPlayer({ ...player, stage: player.stage + 1 });
     setStageWinner("monster");
-    handleMessages(
-      player.stage === 2
-        ? "player win!"
-        : `player changed to stage ${player.stage + 1}`
-    );
     setNextLevelDoor(undefined);
   };
 
@@ -290,7 +319,7 @@ export const Game = () => {
           <button
             className={`${Styles.btn} ${Styles.run}`}
             onClick={resetGame}
-            disabled={player.stage === 0}
+            disabled={player.stage === 0 || hasWon}
           >
             Escape
           </button>
@@ -318,24 +347,22 @@ const Tile = ({
   return (
     <div className={Styles.tileContainer}>
       <div
+        className={`${Styles.player} ${
+          isCollisioning(monsterRef, playerRef) ? Styles.pulseAnimation : ""
+        } ${
+          isCollisioning(doorRef, playerRef) ? Styles.playerEnteringDoor : ""
+        } ${player.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""} ${
+          player.hitpoints <= 0 ? Styles.isDead : ""
+        } `}
         ref={playerRef}
-        className={`${Styles.playerCenterPoint} ${
-          player.hitpoints <= MID_LIFE ? Styles.isAboutToDie : ""
-        } ${player.hitpoints <= 0 ? Styles.isDead : ""} `}
         style={{
           left: `${player.coords.x}px`,
           top: `${player.coords.y}px`,
         }}
       >
-        <div
-          className={`${Styles.player} ${
-            isCollisioning(monsterRef, playerRef) ? Styles.pulseAnimation : ""
-          } ${
-            isCollisioning(doorRef, playerRef) ? Styles.playerEnteringDoor : ""
-          }`}
-        ></div>
         <span className={Styles.elementTitle}>player</span>
       </div>
+      {/* </div> */}
       <div
         ref={monsterRef}
         className={`${Styles.monster} ${
@@ -385,45 +412,51 @@ const doBattle = async ({
   monster,
   setPlayer,
   setMonster,
-  handleMessages,
+  setLogMessage,
+  addTimerToMessage,
 }: {
   player: Player;
   monster: Monster;
   setPlayer: React.Dispatch<React.SetStateAction<Player>>;
   setMonster: React.Dispatch<React.SetStateAction<Monster>>;
-  handleMessages: (message: string) => number;
+  setLogMessage: React.Dispatch<React.SetStateAction<string[]>>;
+  addTimerToMessage: any;
 }): Promise<BattleWinner> => {
   let playerHitpoints = player.hitpoints;
   let monsterHitpoints = monster.hitpoints;
 
   let firstAttacking = Math.random() * 1 >= 0.5 ? "monster" : "player";
-  handleMessages(`first attacking: ${firstAttacking}`);
+
+  await setLogMessage((logMessages) => {
+    return [
+      addTimerToMessage(`first attacking: ${firstAttacking}`),
+      ...logMessages,
+    ];
+  });
 
   while (playerHitpoints >= 0 && monsterHitpoints >= 0) {
     if (firstAttacking === "monster") {
       playerHitpoints -= monster.attackDamage;
       setPlayer({ ...player, hitpoints: playerHitpoints });
-      handleMessages(
-        playerHitpoints >= 0
-          ? `${firstAttacking === "monster" ? "player" : "monster"} loose ${
-              monster.attackDamage
-            } hitpoints due to an attack by a ${firstAttacking}`
-          : `${
-              firstAttacking === "monster" ? "player" : "monster"
-            } was killed by a ${firstAttacking}`
-      );
+      setLogMessage((logMessages) => [
+        addTimerToMessage(
+          playerHitpoints >= 0
+            ? `Player loose ${monster.attackDamage} hitpoints due to an attack by a monster`
+            : `Player was killed by a monster`
+        ),
+        ...logMessages,
+      ]);
     } else {
       monsterHitpoints -= player.attackDamage;
       setMonster({ ...monster, hitpoints: monsterHitpoints });
-      handleMessages(
-        monsterHitpoints >= 0
-          ? `${firstAttacking === "monster" ? "player" : "monster"} loose ${
-              player.attackDamage
-            } hitpoints due to an attack by a ${firstAttacking}`
-          : `${
-              firstAttacking === "monster" ? "player" : "monster"
-            } was killed by a ${firstAttacking}`
-      );
+      setLogMessage((logMessages) => [
+        addTimerToMessage(
+          monsterHitpoints >= 0
+            ? `Monster loose ${player.attackDamage} hitpoints due to an attack by a player`
+            : `Monster was killed by a player`
+        ),
+        ...logMessages,
+      ]);
     }
     firstAttacking = firstAttacking === "monster" ? "player" : "monster";
 
@@ -510,24 +543,20 @@ const randomNearbyMovement = ({ monster }: { monster: Monster }) => {
   let y = 0;
   if (xIsPositive) {
     x = coords.x + xRand;
-    if (yIsPositive) {
-      y = coords.y + yRand;
-    } else {
-      y = coords.y - yRand;
-    }
   } else {
     x = coords.x - xRand;
-    if (yIsPositive) {
-      y = coords.y + yRand;
-    } else {
-      y = coords.y - yRand;
-    }
   }
+  if (yIsPositive) {
+    y = coords.y + yRand;
+  } else {
+    y = coords.y - yRand;
+  }
+
   const newCoords = { x, y };
   return newCoords;
 };
 
-function isOutOfBounds(
+function playerOutOfBounds(
   position: Number,
   bounds: HTMLDivElement | null,
   direction: "yAxisUp" | "yAxisDown" | "xAxisLeft" | "xAxisRight"
@@ -539,23 +568,15 @@ function isOutOfBounds(
   const maxHeightBound = bounds?.clientHeight;
 
   if (direction === "yAxisUp" && position <= 7) {
-    console.log("can't go beyond the limits");
-
     return !outOfBound;
   }
   if (direction === "yAxisDown" && position >= maxHeightBound - 12) {
-    console.log("can't go beyond the limits");
-
     return !outOfBound;
   }
   if (direction === "xAxisLeft" && position <= 7) {
-    console.log("can't go beyond the limits");
-
     return !outOfBound;
   }
   if (direction === "xAxisRight" && position >= maxWidthBound - 12) {
-    console.log("can't go beyond the limits");
-
     return !outOfBound;
   }
 

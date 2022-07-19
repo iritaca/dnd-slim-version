@@ -1,6 +1,7 @@
 type CoordsInMap = { x: number; y: number };
 export interface Player {
   hitpoints: number;
+  maxHitpoints: number;
   attackDamage: number;
   stage: number;
   movementMult: number;
@@ -9,6 +10,7 @@ export interface Player {
 
 export interface Monster {
   hitpoints: number;
+  maxHitpoints: number;
   attackDamage: number;
   coords: CoordsInMap;
 }
