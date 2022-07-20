@@ -56,10 +56,10 @@ export const Game = () => {
     if (!playerTouchingMonster) {
       monsterMovementOverTime = setInterval(() => {
         if (mapSize) {
-          // @isaac modificar esta seccion para que aplique el cambio en el ultimo monstruo creado
-          const coords = randomNearbyMovement({ monster });
-
-          setMonster((monster) => ({ ...monster, coords }));
+          setMonster((m) => ({
+            ...m,
+            coords: randomNearbyMovement({ monster: m }),
+          }));
         }
       }, 3000);
     }
@@ -129,11 +129,10 @@ export const Game = () => {
 
   //Action that happens after advancing to the next stage
   useEffect(() => {
-    if (player.stage <= STAGES_LIMIT) setMonster(generateMonster());
-
     const mapSize = containerRef.current;
+    const newMonster = generateMonster();
 
-    if (mapSize) {
+    if (mapSize && player.stage <= STAGES_LIMIT) {
       let playerCoords = generateRandomCoords({
         mapSize: mapSize,
         spaceInMap: "player",
@@ -146,10 +145,11 @@ export const Game = () => {
         mapSize: mapSize,
         spaceInMap: "monster",
       });
-      setMonster((monster) => ({
-        ...monster,
+
+      setMonster({
+        ...newMonster,
         coords: monsterCoords,
-      }));
+      });
     }
     //provisional fix
     setTimeout(() => {
@@ -184,7 +184,10 @@ export const Game = () => {
 
   // When the monster goes out of the map, a new monster position is generated
   useEffect(() => {
-    const { x, y } = monster.coords;
+    //shorthand to get the keys
+    // const { x, y } = monster.coords;
+    const x = monster.coords.x;
+    const y = monster.coords.y;
     const mapSize = containerRef.current;
     const mapWidth = mapSize?.clientWidth;
     const mapHeight = mapSize?.clientHeight;
@@ -362,7 +365,6 @@ const Tile = ({
       >
         <span className={Styles.elementTitle}>player</span>
       </div>
-      {/* </div> */}
       <div
         ref={monsterRef}
         className={`${Styles.monster} ${
@@ -527,13 +529,13 @@ function generateRandomCoords({
 
   const x = randomPosition(mapMaxWidth);
   const y = randomYPosition();
-  const randomPositionCoords = { x, y };
+  const randomPositionCoords = { x: x, y: y };
 
   return randomPositionCoords;
 }
 
 const randomNearbyMovement = ({ monster }: { monster: Monster }) => {
-  const { coords } = monster;
+  const coords = monster.coords;
   const maxRandomMovement = 30;
   const xRand = Math.random() * maxRandomMovement;
   const yRand = Math.random() * maxRandomMovement;
@@ -552,7 +554,7 @@ const randomNearbyMovement = ({ monster }: { monster: Monster }) => {
     y = coords.y - yRand;
   }
 
-  const newCoords = { x, y };
+  const newCoords = { x: x, y: y };
   return newCoords;
 };
 
