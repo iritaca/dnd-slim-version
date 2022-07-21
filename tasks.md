@@ -41,6 +41,12 @@
   - [x] If player touches monster, monster stops moving (instant refs)
   - [] Allow monster to flee
 
+## task 5:
+
+- [] Routing
+- [] generate more monster with random data
+- [] Create a new screen where yo can see the stats of the monsters in all the game.
+
 # ideas of what to learn next
 
 # Ideas
@@ -52,3 +58,28 @@
 # @isaac doubts ...
 
 if monster goes out of bounds, randomly possition it in the map and let it start moving.
+
+- [] Promises
+- [] async/await
+- [] useDispatch
+- [] useMemo // ya lo hemos platicado, pero hay alguna forma de aplicarlo al proyecto?
+- [] se podria implementar algo en el juego para practicar algunos de los metodos de Array mas usados, en el codigo vi some y reduce
+
+- [] moment
+- [] en que casos es necesario usar eslint-disable-line?
+- [] cuando inicializan un useRef(false), solo se puede acceder a su data al pasar a true?
+- [] que significa + en {key: +value}
+- [] porque en los arreglos "vacios", necesito colocar fill(undefined)? Se puede colocar directamente .map?
+
+Routing
+
+- [] install react-router-dom
+
+  - [] read the documentation
+
+  - [] agregar al componente de app.tsx
+  - [] usar el history
+
+<Switch>
+  <Route exact path='start' component={StartScreen} />
+  <Route exact path='game' component={Game} />
