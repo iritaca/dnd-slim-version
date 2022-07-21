@@ -4,6 +4,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  user-select: none;
+}
+
+ul {
+  list-style: none;
 }
 
 h2 {
@@ -25,6 +30,7 @@ button {
     cursor: pointer;
   }
 }
+
 /*#endregion generic styles*/
 
 /*#region Colors*/
@@ -34,6 +40,7 @@ $green_1: #59d18e;
 $blue_1: #5b9ad2;
 $blue_2: #4164df;
 $blue_3: #92a8d1;
+$blue_4: #34568b;
 $purple_1: #5a4bad;
 $red_1: #ff6f61;
 $red_2: #c34033;
@@ -67,6 +74,15 @@ $lowLife: $red_2;
       margin-top: $size;
     }
   }
+}
+
+%generalBtn {
+  padding: 16px 32px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-decoration: none;
+  color: $gray_1;
+  font-weight: 600;
 }
 /*#endregion utils*/
 
@@ -322,6 +338,7 @@ $lowLife: $red_2;
 
 .btn {
   $parent: &;
+  width: 100%;
   font-size: 1.2rem;
   transition: all 0.2s $cubicBezier;
   position: relative;
@@ -357,6 +374,7 @@ $lowLife: $red_2;
     advance: $purple_1,
     reset: $blue_3,
     heal: $red_1,
+    home: $blue_4,
   );
   @each $name, $color in $btn-colors {
     &.#{$name} {
@@ -414,3 +432,44 @@ $lowLife: $red_2;
   }
 }
 /*#endregion hitpoints */
+
+/*#region Home */
+.home {
+  &Wrapper {
+    height: 100vh;
+    outline: 1px solid green;
+    display: flex;
+    flex-direction: column;
+
+    & h2 {
+      padding: 32px;
+    }
+  }
+  &Menu {
+    height: 30%;
+    width: 20%;
+    margin: 32px auto;
+    text-align: center;
+    @include flexCenter;
+    flex-direction: column;
+    @include layoutMargin($type: vertical, $size: 32px);
+
+    .btn {
+      @extend %generalBtn;
+    }
+  }
+}
+
+/*#endregion Home */
+
+/*#region Game Info */
+.gameInfo {
+  height: 100vh;
+  width: 100vw;
+  @include flexCenter;
+  .btn {
+    width: auto;
+    @extend %generalBtn;
+  }
+}
+/*#endregion Game Info */
