@@ -463,7 +463,8 @@ $lowLife: $red_2;
 /*#endregion Home */
 
 /*#region Game Info */
-.gameInfo {
+.gameInfo,
+.notFound {
   height: 100vh;
   width: 100vw;
   @include flexCenter;
@@ -473,3 +474,11 @@ $lowLife: $red_2;
   }
 }
 /*#endregion Game Info */
+
+/*#region Not Found */
+
+.notFound {
+  flex-direction: column;
+  @include layoutMargin($type: vertical, $size: 32px);
+}
+/*#endregion Not Found */

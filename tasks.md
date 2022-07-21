@@ -43,10 +43,10 @@
 
 ## task 5:
 
-- [] Routing
+- [x] Routing
 - [] generate more monster with random data
-- [] Create a new screen where yo can see the stats of the monsters in all the game.
-- [] if player is battling, disable the escape button.
+- [] Create a new screen to see the stats of the monsters in all the game.
+- [x] if player is battling, disable the escape button.
 
 # ideas of what to learn next
 
