@@ -46,6 +46,7 @@
 - [] Routing
 - [] generate more monster with random data
 - [] Create a new screen where yo can see the stats of the monsters in all the game.
+- [] if player is battling, disable the escape button.
 
 # ideas of what to learn next
 
@@ -65,21 +66,4 @@ if monster goes out of bounds, randomly possition it in the map and let it start
 - [] useMemo // ya lo hemos platicado, pero hay alguna forma de aplicarlo al proyecto?
 - [] se podria implementar algo en el juego para practicar algunos de los metodos de Array mas usados, en el codigo vi some y reduce
 
-- [] moment
-- [] en que casos es necesario usar eslint-disable-line?
-- [] cuando inicializan un useRef(false), solo se puede acceder a su data al pasar a true?
-- [] que significa + en {key: +value}
-- [] porque en los arreglos "vacios", necesito colocar fill(undefined)? Se puede colocar directamente .map?
-
-Routing
-
-- [] install react-router-dom
-
-  - [] read the documentation
-
-  - [] agregar al componente de app.tsx
-  - [] usar el history
-
-<Switch>
-  <Route exact path='start' component={StartScreen} />
-  <Route exact path='game' component={Game} />
+- [] implement window local storage to save the game, e.g. let the user be able to fight with a monster and if the player is dying he can go back to a previous moment before the fight, allowing the user to choose another monster or to escape from the stage

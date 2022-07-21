@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
+import { Link } from "react-router-dom";
+
 import { generatePlayer } from "./PlayerAndMonsters/player";
 import { generateMonster } from "./PlayerAndMonsters/monsters";
 
@@ -25,6 +27,7 @@ export const Game = () => {
   const [nextLevelDoor, setNextLevelDoor] = useState<NextLevelDoor>();
   const [logMessage, setLogMessage] = useState<string[]>([]);
   const [stageWinner, setStageWinner] = useState<BattleWinner>("monster");
+  const [playerIsAttacking, setPlayerIsAttacking] = useState<boolean>(false);
 
   // element size, and position references
   const containerRef = useRef<HTMLDivElement>(null);
@@ -132,6 +135,8 @@ export const Game = () => {
     const mapSize = containerRef.current;
     const newMonster = generateMonster();
 
+    setPlayerIsAttacking(false);
+
     if (mapSize && player.stage <= STAGES_LIMIT) {
       let playerCoords = generateRandomCoords({
         mapSize: mapSize,
@@ -210,6 +215,7 @@ export const Game = () => {
 
   //Button actions
   const attackButton = async () => {
+    setPlayerIsAttacking(true);
     const winner = await doBattle({
       player,
       monster,
@@ -218,6 +224,7 @@ export const Game = () => {
       setLogMessage,
       addTimerToMessage,
     });
+
     setStageWinner(winner);
   };
 
@@ -322,10 +329,13 @@ export const Game = () => {
           <button
             className={`${Styles.btn} ${Styles.run}`}
             onClick={resetGame}
-            disabled={player.stage === 0 || hasWon}
+            disabled={player.stage === 0 || hasWon || playerIsAttacking}
           >
             Escape
           </button>
+          <Link to="/">
+            <button className={`${Styles.btn} ${Styles.home}`}>Home</button>
+          </Link>
         </div>
       </section>
     </div>
