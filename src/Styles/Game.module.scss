@@ -468,17 +468,11 @@ $lowLife: $red_2;
   height: 100vh;
   width: 100vw;
   @include flexCenter;
+  flex-direction: column;
+  @include layoutMargin($type: vertical, $size: 32px);
   .btn {
     width: auto;
     @extend %generalBtn;
   }
 }
 /*#endregion Game Info */
-
-/*#region Not Found */
-
-.notFound {
-  flex-direction: column;
-  @include layoutMargin($type: vertical, $size: 32px);
-}
-/*#endregion Not Found */

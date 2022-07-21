@@ -9,7 +9,6 @@ import {
   Routes,
   Route,
   BrowserRouter,
-  Outlet,
 } from "react-router-dom";
 
 function App() {
@@ -18,8 +17,8 @@ function App() {
       <div>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/game" element={<Game />} />
-          <Route path="/game-info" element={<GameInfo />} />
+          <Route path="game" element={<Game />} />
+          <Route path="game-info" element={<GameInfo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
