@@ -28,7 +28,7 @@ export const Game = () => {
   const [logMessage, setLogMessage] = useState<string[]>([]);
   const [stageWinner, setStageWinner] = useState<BattleWinner>("monster");
   const [playerIsAttacking, setPlayerIsAttacking] = useState<boolean>(false);
-
+  console.log(monster); //@isaac delete this line
   // element size, and position references
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
